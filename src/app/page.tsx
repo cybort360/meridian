@@ -1,101 +1,107 @@
-import Image from "next/image";
+import Link from "next/link"
+import { Compass, Zap, ShieldCheck, Globe } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { APP_NAME } from "@/lib/constants"
 
-export default function Home() {
+const FEATURES = [
+  {
+    icon: Zap,
+    title: "Instant capital",
+    body: "Upload an unpaid invoice and receive USDC-backed working capital in seconds, not weeks.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "AI risk scoring",
+    body: "Every invoice is scored in real time, giving investors transparent, explainable risk.",
+  },
+  {
+    icon: Globe,
+    title: "On-chain settlement",
+    body: "Repayments route automatically in USDC on Arc — verifiable, borderless, and fast.",
+  },
+]
+
+export default function LandingPage() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen bg-slate-950 text-slate-100">
+      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
+        <div className="flex items-center gap-2">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-400/10 ring-1 ring-emerald-400/20">
+            <Compass className="h-5 w-5 text-emerald-400" />
+          </span>
+          <span className="text-xl font-semibold tracking-tight">
+            {APP_NAME}
+          </span>
         </div>
+        <nav className="flex items-center gap-3">
+          <Link href="/login">
+            <Button
+              variant="ghost"
+              className="text-slate-300 hover:text-slate-100"
+            >
+              Sign in
+            </Button>
+          </Link>
+          <Link href="/register">
+            <Button className="bg-emerald-500 text-slate-950 hover:bg-emerald-400">
+              Get Started
+            </Button>
+          </Link>
+        </nav>
+      </header>
+
+      <main className="mx-auto max-w-6xl px-6">
+        <section className="py-20 text-center sm:py-28">
+          <p className="mb-4 text-sm font-medium uppercase tracking-widest text-emerald-400">
+            AI-native trade finance
+          </p>
+          <h1 className="mx-auto max-w-3xl text-4xl font-bold tracking-tight sm:text-6xl">
+            Instant USDC-backed capital for UAE SMEs
+          </h1>
+          <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-400">
+            Turn unpaid invoices into working capital today. {APP_NAME} scores
+            risk with AI, funds you in USDC, and builds your on-chain credit
+            passport with every transaction.
+          </p>
+          <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link href="/register">
+              <Button
+                size="lg"
+                className="w-full bg-emerald-500 text-slate-950 hover:bg-emerald-400 sm:w-auto"
+              >
+                Get Started
+              </Button>
+            </Link>
+            <Link href="/login">
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full border-slate-700 bg-transparent text-slate-100 hover:bg-slate-800 sm:w-auto"
+              >
+                Sign in
+              </Button>
+            </Link>
+          </div>
+        </section>
+
+        <section className="grid grid-cols-1 gap-6 pb-24 md:grid-cols-3">
+          {FEATURES.map((f) => {
+            const Icon = f.icon
+            return (
+              <div
+                key={f.title}
+                className="rounded-2xl border border-slate-800 bg-slate-900 p-6"
+              >
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-400/10 ring-1 ring-emerald-400/20">
+                  <Icon className="h-5 w-5 text-emerald-400" />
+                </span>
+                <h3 className="mt-4 text-lg font-semibold">{f.title}</h3>
+                <p className="mt-2 text-sm text-slate-400">{f.body}</p>
+              </div>
+            )
+          })}
+        </section>
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
-  );
+  )
 }
