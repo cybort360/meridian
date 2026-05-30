@@ -15,9 +15,9 @@ function advanceAmount(amountUSDC: bigint, advanceRate: number): bigint {
   return (amountUSDC * BigInt(advanceRate)) / 100n
 }
 
-function feeAmount(amountUSDC: bigint, feeRate: number): bigint {
-  // feeRate is basis points (200 = 2%).
-  return (amountUSDC * BigInt(feeRate)) / 10_000n
+function feeAmount(base: bigint, feeRate: number): bigint {
+  // feeRate is basis points (200 = 2%); charged on the advanced principal.
+  return (base * BigInt(feeRate)) / 10_000n
 }
 
 export class SettlementError extends Error {
@@ -29,7 +29,7 @@ export class SettlementError extends Error {
 
 // Investor funds a SCORED invoice:
 //   investor wallet → per-invoice escrow wallet → SME wallet
-// Records the ADVANCE payment and moves the invoice to ACTIVE.
+// Both legs are recorded as ADVANCE payments and the invoice moves to ACTIVE.
 export async function fundInvoice(
   invoiceId: string,
   investorId: string
@@ -61,49 +61,73 @@ export async function fundInvoice(
   }
 
   const advance = advanceAmount(invoice.amountUSDC, invoice.advanceRate)
+  const fee = feeAmount(advance, invoice.feeRate)
 
-  // Dedicated escrow wallet for this invoice (Circle wallet, not a User wallet).
-  const escrow = await createWallet(`escrow-${invoiceId}`)
+  // Dedicated escrow wallet for this invoice, persisted as a Wallet row so both
+  // transfer legs can be recorded as Payments.
+  const escrowCircle = await createWallet(`escrow-${invoiceId}`)
+  const escrowWallet = await prisma.wallet.create({
+    data: {
+      circleWalletId: escrowCircle.circleWalletId,
+      address: escrowCircle.address,
+      blockchain: escrowCircle.blockchain,
+      isEscrow: true,
+      invoiceId,
+    },
+  })
 
-  // investor → escrow, wait for settlement before disbursing onward.
+  // Leg 1: investor → escrow (wait for settlement before disbursing onward).
   const toEscrow = await transferUSDC({
     fromCircleWalletId: investorWallet.circleWalletId,
-    toAddress: escrow.address,
+    toAddress: escrowWallet.address,
     amountBaseUnits: advance,
   })
-  await pollTransaction(toEscrow.circlePaymentId)
+  const escrowStatus = await pollTransaction(toEscrow.circlePaymentId)
 
-  // escrow → SME
+  // Leg 2: escrow → SME
   const toSme = await transferUSDC({
-    fromCircleWalletId: escrow.circleWalletId,
+    fromCircleWalletId: escrowWallet.circleWalletId,
     toAddress: smeWallet.address,
     amountBaseUnits: advance,
   })
-  const status = await pollTransaction(toSme.circlePaymentId)
+  const smeStatus = await pollTransaction(toSme.circlePaymentId)
 
-  // Record the economic advance (investor → SME).
-  await prisma.payment.create({
-    data: {
-      senderWalletId: investorWallet.id,
-      receiverWalletId: smeWallet.id,
-      invoiceId,
-      amountUSDC: advance,
-      type: "ADVANCE",
-      status: toPaymentStatus(status.state),
-      circlePaymentId: toSme.circlePaymentId,
-      txHash: status.txHash,
-      blockchain: smeWallet.blockchain,
-    },
+  // Record both advance legs.
+  await prisma.payment.createMany({
+    data: [
+      {
+        senderWalletId: investorWallet.id,
+        receiverWalletId: escrowWallet.id,
+        invoiceId,
+        amountUSDC: advance,
+        type: "ADVANCE",
+        status: toPaymentStatus(escrowStatus.state),
+        circlePaymentId: toEscrow.circlePaymentId,
+        txHash: escrowStatus.txHash,
+        blockchain: escrowWallet.blockchain,
+      },
+      {
+        senderWalletId: escrowWallet.id,
+        receiverWalletId: smeWallet.id,
+        invoiceId,
+        amountUSDC: advance,
+        type: "ADVANCE",
+        status: toPaymentStatus(smeStatus.state),
+        circlePaymentId: toSme.circlePaymentId,
+        txHash: smeStatus.txHash,
+        blockchain: smeWallet.blockchain,
+      },
+    ],
   })
 
   return prisma.invoice.update({
     where: { id: invoiceId },
     data: {
       investorId,
-      escrowWalletId: escrow.circleWalletId,
+      escrowWalletId: escrowWallet.circleWalletId,
       status: "ACTIVE",
       fundedAt: new Date(),
-      feeAmountUSDC: feeAmount(invoice.amountUSDC, invoice.feeRate),
+      feeAmountUSDC: fee,
     },
     include: { sme: true, investor: true },
   })
@@ -139,7 +163,7 @@ export async function settleInvoice(
   }
 
   const advance = advanceAmount(invoice.amountUSDC, invoice.advanceRate)
-  const fee = feeAmount(invoice.amountUSDC, invoice.feeRate)
+  const fee = feeAmount(advance, invoice.feeRate)
   const investorReturn = advance + fee
 
   const settlement = await transferUSDC({

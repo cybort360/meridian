@@ -40,13 +40,15 @@ model Session {
 
 model Wallet {
   id              String          @id @default(cuid())
-  userId          String          @unique
+  userId          String?         @unique   // null for per-invoice escrow wallets
   circleWalletId  String          @unique
   address         String          @unique
   blockchain      String          @default("ARC")
+  isEscrow        Boolean         @default(false)
+  invoiceId       String?                   // set when this is an invoice's escrow wallet
   createdAt       DateTime        @default(now())
 
-  user            User            @relation(fields: [userId], references: [id])
+  user            User?           @relation(fields: [userId], references: [id])
   sentPayments    Payment[]       @relation("SenderWallet")
   receivedPayments Payment[]      @relation("ReceiverWallet")
 }

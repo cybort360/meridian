@@ -87,7 +87,9 @@ export async function GET() {
           amountUSDC: p.amountUSDC.toString(),
           direction: outbound ? "OUT" : "IN",
           counterparty:
-            counterpartyUser.companyName ?? counterpartyUser.name,
+            counterpartyUser?.companyName ??
+            counterpartyUser?.name ??
+            "Escrow",
           createdAt: p.createdAt.toISOString(),
         }
       })
