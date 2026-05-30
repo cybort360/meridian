@@ -7,26 +7,25 @@ a friendly 503 and the Wallet page shows a "Create wallet" action.
 ## One-time setup
 
 1. **Create a Circle developer account** → https://console.circle.com and create
-   an **API key** (sandbox).
-
-2. **Generate & register an entity secret** (developer-controlled wallets).
-   Follow Circle's guide — you must generate, register, and **store the recovery
-   file yourself** (never commit it; `*-recovery-file.json` is gitignored):
-   https://developers.circle.com/wallets/dev-controlled/register-entity-secret
-
-3. **Add credentials to `.env.local`:**
+   an **API key** (sandbox). Put it in `.env.local`:
    ```bash
    CIRCLE_API_KEY="TEST_API_KEY:..."
-   CIRCLE_ENTITY_SECRET="<32-byte hex>"
    ```
 
-4. **Create a wallet set** (one-time) and copy the printed id into `.env.local`:
+2. **Bootstrap (recommended)** — generates a valid entity secret, registers it,
+   creates a wallet set, and writes `CIRCLE_ENTITY_SECRET` + `CIRCLE_WALLET_SET_ID`
+   back into `.env.local`:
    ```bash
-   npm run circle:setup
-   # → CIRCLE_WALLET_SET_ID="..."
+   npm run circle:bootstrap
    ```
+   The recovery file is written to `~/.circle/` (outside the repo). **Back it up
+   securely** — it's required to recover wallet access. Never commit it.
 
-5. Restart the dev server: `npm run dev`.
+   *Already have your own entity secret?* Register it via Circle's console/docs
+   instead (https://developers.circle.com/wallets/dev-controlled/register-entity-secret),
+   add it to `.env.local`, then run `npm run circle:setup` for just the wallet set.
+
+3. Restart the dev server: `npm run dev`.
 
 ## Live test (Phase 2 "Done When")
 
