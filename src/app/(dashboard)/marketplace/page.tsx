@@ -4,7 +4,7 @@ import { Store } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { useInvoices } from "@/hooks/useInvoices"
 import { InvoiceListing } from "@/components/marketplace/InvoiceListing"
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner"
+import { InvoiceGridSkeleton } from "@/components/shared/Skeletons"
 import { ErrorMessage } from "@/components/shared/ErrorMessage"
 import { EmptyState } from "@/components/shared/EmptyState"
 
@@ -24,12 +24,7 @@ export default function MarketplacePage() {
         </p>
       </div>
 
-      {loading && (
-        <div className="flex items-center gap-2 text-sm text-slate-400">
-          <LoadingSpinner />
-          Loading marketplace…
-        </div>
-      )}
+      {loading && <InvoiceGridSkeleton />}
 
       {!loading && error && <ErrorMessage message={error} />}
 

@@ -6,7 +6,7 @@ import { CreditScore } from "@/components/passport/CreditScore"
 import { HistoryTimeline } from "@/components/passport/HistoryTimeline"
 import { USDCAmount } from "@/components/shared/USDCAmount"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner"
+import { PassportSkeleton } from "@/components/shared/Skeletons"
 import { ErrorMessage } from "@/components/shared/ErrorMessage"
 import { EmptyState } from "@/components/shared/EmptyState"
 
@@ -25,12 +25,7 @@ export default function PassportPage() {
         </p>
       </div>
 
-      {loading && (
-        <div className="flex items-center gap-2 text-sm text-slate-400">
-          <LoadingSpinner />
-          Loading your passport…
-        </div>
-      )}
+      {loading && <PassportSkeleton />}
 
       {!loading && error && <ErrorMessage message={error} />}
 

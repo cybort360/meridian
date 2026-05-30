@@ -8,7 +8,7 @@ import { TransactionRow } from "@/components/wallet/TransactionRow"
 import { CctpDemo } from "@/components/wallet/CctpDemo"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner"
+import { WalletSkeleton } from "@/components/shared/Skeletons"
 import { ErrorMessage } from "@/components/shared/ErrorMessage"
 import { EmptyState } from "@/components/shared/EmptyState"
 
@@ -35,12 +35,7 @@ export default function WalletPage() {
         </p>
       </div>
 
-      {loading && (
-        <div className="flex items-center gap-2 text-sm text-slate-400">
-          <LoadingSpinner />
-          Loading your wallet…
-        </div>
-      )}
+      {loading && <WalletSkeleton />}
 
       {!loading && hasWallet === false && (
         <EmptyState

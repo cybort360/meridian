@@ -8,7 +8,7 @@ import { InvoiceCard } from "@/components/invoices/InvoiceCard"
 import { InvoiceForm } from "@/components/invoices/InvoiceForm"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner"
+import { InvoiceGridSkeleton } from "@/components/shared/Skeletons"
 import { ErrorMessage } from "@/components/shared/ErrorMessage"
 import { EmptyState } from "@/components/shared/EmptyState"
 
@@ -60,12 +60,7 @@ export default function InvoicesPage() {
         </Card>
       )}
 
-      {loading && (
-        <div className="flex items-center gap-2 text-sm text-slate-400">
-          <LoadingSpinner />
-          Loading invoices…
-        </div>
-      )}
+      {loading && <InvoiceGridSkeleton />}
 
       {!loading && error && <ErrorMessage message={error} />}
 
