@@ -178,7 +178,9 @@ export default function InvoiceDetailPage() {
               </CardContent>
             </Card>
 
-            <MarkRepaidButton invoice={invoice} onSettled={setInvoice} />
+            {isOwner && (
+              <MarkRepaidButton invoice={invoice} onSettled={setInvoice} />
+            )}
           </div>
         </div>
       )}

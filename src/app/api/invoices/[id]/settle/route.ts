@@ -7,7 +7,9 @@ import { serializeInvoice } from "@/lib/invoices"
 import { CircleConfigError } from "@/lib/circle/client"
 
 // POST /api/invoices/[id]/settle — simulate buyer repayment + investor payout.
-// Triggered by the SME ("Mark as repaid") or the funding investor.
+// Settlement moves USDC OUT of the SME wallet, so only the SME may trigger it
+// ("Mark as repaid"). Allowing the investor here would let them pull funds from
+// the SME before the buyer has actually paid.
 export async function POST(
   _req: NextRequest,
   { params }: { params: { id: string } }
@@ -20,15 +22,12 @@ export async function POST(
 
     const invoice = await prisma.invoice.findUnique({
       where: { id: params.id },
-      select: { smeId: true, investorId: true },
+      select: { smeId: true },
     })
     if (!invoice) {
       return NextResponse.json({ error: "Invoice not found" }, { status: 404 })
     }
-    const allowed =
-      invoice.smeId === session.user.id ||
-      invoice.investorId === session.user.id
-    if (!allowed) {
+    if (invoice.smeId !== session.user.id) {
       return NextResponse.json({ error: "Invoice not found" }, { status: 404 })
     }
 
