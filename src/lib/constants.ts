@@ -24,3 +24,22 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Passport", href: "/passport", icon: IdCard },
   { label: "Settings", href: "/settings", icon: Settings },
 ]
+
+// ─── Circle / Arc ───────────────────────────────────────────
+// Arc uses USDC as its native gas token, so EOA wallets work without
+// a separate gas asset — the faucet funds gas and USDC together.
+export const CIRCLE_BLOCKCHAIN = "ARC-TESTNET"
+export const CIRCLE_ACCOUNT_TYPE = "EOA"
+
+// USDC on Arc testnet (6 decimals). https://docs.arc.network
+export const ARC_USDC_TOKEN_ADDRESS =
+  "0x3600000000000000000000000000000000000000"
+export const USDC_SYMBOL = "USDC"
+
+export const ARC_EXPLORER_URL = "https://testnet.arcscan.app"
+export const ARC_FAUCET_URL = "https://faucet.circle.com"
+export const ARC_CHAIN_ID = 5042002
+
+export function arcTxUrl(txHash: string): string {
+  return `${ARC_EXPLORER_URL}/tx/${txHash}`
+}

@@ -18,3 +18,15 @@ export const loginSchema = z.object({
 })
 
 export type LoginInput = z.infer<typeof loginSchema>
+
+export const transferSchema = z.object({
+  toAddress: z
+    .string()
+    .regex(/^0x[a-fA-F0-9]{40}$/, "Enter a valid Arc wallet address (0x…)"),
+  amount: z.number().positive("Amount must be greater than 0"),
+  type: z
+    .enum(["ADVANCE", "REPAYMENT", "SETTLEMENT", "FEE", "CROSS_CHAIN"])
+    .optional(),
+})
+
+export type TransferInput = z.infer<typeof transferSchema>

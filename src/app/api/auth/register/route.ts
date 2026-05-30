@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 import { registerSchema } from "@/lib/utils/validation"
+import { createWallet } from "@/lib/circle/wallets"
 
 export async function POST(req: NextRequest) {
   try {
@@ -39,6 +40,26 @@ export async function POST(req: NextRequest) {
       },
       select: { id: true, email: true, name: true, role: true },
     })
+
+    // Provision a Circle wallet on Arc. Non-fatal: if Circle isn't configured
+    // yet, registration still succeeds and the user can create a wallet later
+    // from the Wallet page.
+    try {
+      const created = await createWallet(user.id)
+      await prisma.wallet.create({
+        data: {
+          userId: user.id,
+          circleWalletId: created.circleWalletId,
+          address: created.address,
+          blockchain: created.blockchain,
+        },
+      })
+    } catch (walletError) {
+      console.warn(
+        "[register] wallet provisioning skipped:",
+        walletError instanceof Error ? walletError.message : walletError
+      )
+    }
 
     return NextResponse.json({ data: user }, { status: 201 })
   } catch (error) {
