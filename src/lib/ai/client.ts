@@ -31,3 +31,6 @@ export function getAnthropicClient(): Anthropic {
 
 // Most capable model; risk scoring is correctness-sensitive.
 export const RISK_MODEL = "claude-opus-4-8"
+
+// Invoice PDF field extraction — also correctness-sensitive (drives the form).
+export const PARSE_MODEL = "claude-opus-4-8"
