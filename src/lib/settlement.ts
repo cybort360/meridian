@@ -39,6 +39,9 @@ export async function fundInvoice(
     include: { sme: { include: { wallet: true } } },
   })
   if (!invoice) throw new SettlementError("Invoice not found.")
+  if (!invoice.buyerSignedAt) {
+    throw new SettlementError("Invoice not yet verified by buyer.")
+  }
   if (invoice.status !== "SCORED") {
     throw new SettlementError("This invoice is not available for funding.")
   }

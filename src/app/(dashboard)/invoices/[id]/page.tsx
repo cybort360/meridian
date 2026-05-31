@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
 import { format } from "date-fns"
-import { ArrowLeft, Loader2, Sparkles } from "lucide-react"
+import { ArrowLeft, Loader2, Sparkles, CheckCircle2, Clock } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -99,6 +99,18 @@ export default function InvoiceDetailPage() {
 
       {!loading && invoice && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {invoice.buyerSignedAt ? (
+            <div className="flex items-center gap-2 rounded-lg border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-300 lg:col-span-3">
+              <CheckCircle2 className="h-4 w-4 shrink-0" />
+              Buyer verified on{" "}
+              {format(new Date(invoice.buyerSignedAt), "MMM d, yyyy")}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 rounded-lg border border-amber-400/20 bg-amber-400/10 px-4 py-3 text-sm text-amber-300 lg:col-span-3">
+              <Clock className="h-4 w-4 shrink-0" />
+              Awaiting buyer verification — email sent to {invoice.buyerEmail}
+            </div>
+          )}
           <div className="space-y-6 lg:col-span-2">
             <Card className="border-slate-800 bg-slate-900 text-slate-100">
               <CardHeader>

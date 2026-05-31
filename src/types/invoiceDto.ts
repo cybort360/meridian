@@ -16,6 +16,7 @@ export interface InvoiceDTO {
   riskSummary: string | null
   advanceRate: number | null
   feeRate: number
+  buyerSignedAt: string | null
   createdAt: string // ISO
   sme?: { id: string; name: string; companyName: string | null }
   investor?: { id: string; name: string } | null

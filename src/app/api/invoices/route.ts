@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { randomUUID } from "crypto"
 import { createInvoiceSchema } from "@/lib/utils/invoiceValidation"
-import { toUSDCBaseUnits } from "@/lib/utils/usdc"
+import { toUSDCBaseUnits, fromUSDCBaseUnits, formatUSDC } from "@/lib/utils/usdc"
 import { scoreAndPersist, serializeInvoice } from "@/lib/invoices"
+import { sendEmail } from "@/lib/email"
 import type { Prisma } from "@prisma/client"
 
 const VALID_STATUSES = [
@@ -84,6 +86,8 @@ export async function POST(req: NextRequest) {
     }
     const data = parsed.data
 
+    const verificationToken = randomUUID()
+
     const created = await prisma.invoice.create({
       data: {
         smeId: session.user.id,
@@ -95,11 +99,31 @@ export async function POST(req: NextRequest) {
         dueDate: new Date(data.dueDate),
         invoiceNumber: data.invoiceNumber,
         status: "PENDING",
+        buyerVerificationToken: verificationToken,
       },
     })
 
-    // Score immediately so the invoice lands in the marketplace as SCORED.
+    // Score now (sets risk fields). Status stays PENDING until the buyer
+    // countersigns via the verification email — only then is it listable.
     const scored = await scoreAndPersist(created.id)
+
+    // Send the buyer a verification (countersign) email. Non-fatal.
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+    const link = `${appUrl}/verify-invoice?token=${verificationToken}`
+    const company = scored.sme?.companyName ?? scored.sme?.name ?? "a supplier"
+    const amountUsd = formatUSDC(fromUSDCBaseUnits(scored.amountUSDC))
+    await sendEmail({
+      to: data.buyerEmail,
+      subject: `Action Required: Please confirm invoice #${data.invoiceNumber} from ${company}`,
+      text:
+        `${company} has submitted an invoice for financing and needs you to confirm it.\n\n` +
+        `Invoice #${data.invoiceNumber}\n` +
+        `Amount: USDC ${amountUsd}\n` +
+        `Due: ${new Date(data.dueDate).toDateString()}\n\n` +
+        `If this invoice is legitimate, confirm it here:\n${link}\n\n` +
+        `Confirming lets ${company} access financing against this invoice. ` +
+        `If you don't recognize it, you can ignore this email.`,
+    })
 
     return NextResponse.json({ data: serializeInvoice(scored) }, { status: 201 })
   } catch (error) {

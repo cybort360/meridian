@@ -29,6 +29,7 @@ export function serializeInvoice(inv: InvoiceWithRelations): InvoiceDTO {
     riskSummary: inv.riskSummary,
     advanceRate: inv.advanceRate,
     feeRate: inv.feeRate,
+    buyerSignedAt: inv.buyerSignedAt ? inv.buyerSignedAt.toISOString() : null,
     createdAt: inv.createdAt.toISOString(),
     sme: inv.sme
       ? { id: inv.sme.id, name: inv.sme.name, companyName: inv.sme.companyName }
@@ -101,7 +102,8 @@ export async function scoreAndPersist(
       riskLabel: assessment.riskLabel,
       riskSummary: assessment.summary,
       advanceRate: assessment.advanceRate,
-      status: "SCORED",
+      // Status is NOT advanced here — an invoice only becomes SCORED (listable)
+      // once the buyer countersigns via the verification link.
     },
     include: { sme: true, investor: true },
   })

@@ -71,6 +71,11 @@ model Invoice {
   riskSummary     String?
   advanceRate     Int?
 
+  // Buyer countersignature (anti-fraud): invoice is not listable until signed.
+  buyerSignature          String?
+  buyerSignedAt           DateTime?
+  buyerVerificationToken  String?   @unique
+
   status          InvoiceStatus   @default(PENDING)
   escrowWalletId  String?
   fundedAt        DateTime?
