@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Meridian — Architecture</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: #020617;
+        color: #e2e8f0;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        padding: 48px;
+        width: 1100px;
+      }
+      .wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0;
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 36px;
+      }
+      .header h1 {
+        font-size: 30px;
+        letter-spacing: -0.5px;
+      }
+      .header .mark {
+        color: #34d399;
+      }
+      .header p {
+        color: #94a3b8;
+        font-size: 14px;
+        margin-top: 6px;
+      }
+      .row {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        width: 100%;
+      }
+      .node {
+        background: #0f172a;
+        border: 1px solid #1e293b;
+        border-radius: 14px;
+        padding: 18px 22px;
+        text-align: center;
+        min-width: 180px;
+      }
+      .node .title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #f1f5f9;
+      }
+      .node .sub {
+        font-size: 12px;
+        color: #94a3b8;
+        margin-top: 4px;
+      }
+      .node.client {
+        border-color: #334155;
+        background: #111827;
+        min-width: 320px;
+      }
+      .node.api {
+        border-color: rgba(52, 211, 153, 0.5);
+        background: rgba(52, 211, 153, 0.06);
+        min-width: 360px;
+      }
+      .node.api .title {
+        color: #34d399;
+      }
+      .node.chain {
+        border-color: rgba(96, 165, 250, 0.5);
+        background: rgba(96, 165, 250, 0.06);
+        min-width: 420px;
+      }
+      .node.chain .title {
+        color: #93c5fd;
+      }
+      .services {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 16px;
+        width: 100%;
+      }
+      .service {
+        background: #0f172a;
+        border: 1px solid #1e293b;
+        border-radius: 12px;
+        padding: 16px 12px;
+        text-align: center;
+      }
+      .service .ic {
+        font-size: 20px;
+      }
+      .service .nm {
+        font-size: 13px;
+        font-weight: 600;
+        margin-top: 8px;
+        color: #f1f5f9;
+      }
+      .service .role {
+        font-size: 11px;
+        color: #94a3b8;
+        margin-top: 3px;
+      }
+      .service.circle {
+        border-color: rgba(52, 211, 153, 0.4);
+      }
+      .connector {
+        width: 2px;
+        height: 28px;
+        background: linear-gradient(#334155, #475569);
+      }
+      .label {
+        font-size: 11px;
+        color: #64748b;
+        padding: 6px 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .legend {
+        margin-top: 40px;
+        display: flex;
+        gap: 24px;
+        font-size: 12px;
+        color: #94a3b8;
+      }
+      .legend .dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+        margin-right: 6px;
+        vertical-align: middle;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="header">
+        <h1><span class="mark">◎</span> Meridian</h1>
+        <p>AI-native trade finance — USDC-backed working capital for UAE SMEs on Arc</p>
+      </div>
+
+      <div class="row">
+        <div class="node client">
+          <div class="title">Browser</div>
+          <div class="sub">SME &amp; Investor · Next.js 14 App Router UI</div>
+        </div>
+      </div>
+
+      <div class="connector"></div>
+      <div class="label">HTTPS · authenticated requests</div>
+      <div class="connector"></div>
+
+      <div class="row">
+        <div class="node api">
+          <div class="title">Next.js API Routes</div>
+          <div class="sub">Auth · invoices · AI scoring · payments · webhooks</div>
+        </div>
+      </div>
+
+      <div class="connector"></div>
+      <div class="label">Server-side service calls</div>
+      <div class="connector"></div>
+
+      <div class="services">
+        <div class="service">
+          <div class="ic">🗄️</div>
+          <div class="nm">Prisma + Postgres</div>
+          <div class="role">Users, invoices, payments, credit events</div>
+        </div>
+        <div class="service">
+          <div class="ic">🧠</div>
+          <div class="nm">Claude AI</div>
+          <div class="role">Invoice risk score &amp; advance rate</div>
+        </div>
+        <div class="service circle">
+          <div class="ic">👛</div>
+          <div class="nm">Circle Wallets</div>
+          <div class="role">Developer-controlled EOA wallets</div>
+        </div>
+        <div class="service circle">
+          <div class="ic">⚡</div>
+          <div class="nm">Circle Gateway</div>
+          <div class="role">USDC transfers &amp; settlement</div>
+        </div>
+        <div class="service circle">
+          <div class="ic">🌉</div>
+          <div class="nm">CCTP / Bridge Kit</div>
+          <div class="role">Cross-chain USDC</div>
+        </div>
+      </div>
+
+      <div class="connector"></div>
+      <div class="label">On-chain USDC settlement &amp; webhooks</div>
+      <div class="connector"></div>
+
+      <div class="row">
+        <div class="node chain">
+          <div class="title">Arc Testnet</div>
+          <div class="sub">USDC is the native gas token · verifiable on-chain flows</div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:#34d399"></span>Circle products</span>
+        <span><span class="dot" style="background:#93c5fd"></span>Blockchain</span>
+        <span><span class="dot" style="background:#475569"></span>App &amp; data</span>
+      </div>
+    </div>
+  </body>
+</html>
