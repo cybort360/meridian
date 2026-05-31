@@ -2,15 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import type { InvoiceStatus } from "@/types"
-
-export interface CreditEventDTO {
-  id: string
-  type: string
-  scoreChange: number
-  newScore: number
-  invoiceId: string | null
-  createdAt: string
-}
+import type { CreditLabel } from "@/lib/utils/creditScore"
 
 export interface PassportInvoice {
   id: string
@@ -18,16 +10,20 @@ export interface PassportInvoice {
   status: InvoiceStatus
   amountUSDC: string
   createdAt: string
-  settledAt: string | null
 }
 
 export interface PassportData {
-  creditScore: number
-  totalVolumeFinanced: string
+  score: number
+  label: CreditLabel
+  totalEvents: number
+  invoicesSettled: number
+  invoicesDefaulted: number
+  totalVolumeUSDC: string
   onTimeRate: number | null
-  invoicesFinanced: number
-  totalInvoices: number
-  events: CreditEventDTO[]
+  avgDaysToSettle: number | null
+  activeInvoices: number
+  address: string | null
+  blockchain: string
   invoices: PassportInvoice[]
 }
 

@@ -4,7 +4,6 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { bridgeUSDCFromArc, CCTP_DESTINATIONS } from "@/lib/circle/cctp"
-import { CircleConfigError } from "@/lib/circle/client"
 
 const cctpSchema = z.object({
   amount: z.number().positive("Amount must be greater than 0"),
@@ -46,9 +45,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ data: result })
   } catch (error) {
-    if (error instanceof CircleConfigError) {
-      return NextResponse.json({ error: error.message }, { status: 503 })
-    }
     console.error("[API /payments/cctp POST]", error)
     return NextResponse.json(
       { error: "The cross-chain transfer could not be completed." },

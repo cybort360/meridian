@@ -2,10 +2,9 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { computeCreditScore } from "@/lib/utils/creditScore"
 
-const CREDIT_BASE_SCORE = 500
-
-// GET /api/passport — on-chain credit identity for the current user.
+// GET /api/passport — on-chain credit identity for the current user (as SME).
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)
@@ -13,58 +12,59 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
     const userId = session.user.id
-    const isInvestor = session.user.role === "INVESTOR"
 
-    const events = await prisma.creditEvent.findMany({
-      where: { userId },
-      orderBy: { createdAt: "desc" },
-    })
-    const creditScore = events[0]?.newScore ?? CREDIT_BASE_SCORE
+    const credit = await computeCreditScore(userId)
 
     const invoices = await prisma.invoice.findMany({
-      where: isInvestor ? { investorId: userId } : { smeId: userId },
+      where: { smeId: userId },
       orderBy: { createdAt: "desc" },
     })
 
-    const financed = invoices.filter((i) =>
-      ["ACTIVE", "REPAID", "SETTLED"].includes(i.status)
-    )
-    const settled = invoices.filter((i) => i.status === "SETTLED").length
-    const defaulted = invoices.filter((i) => i.status === "DEFAULTED").length
+    const activeInvoices = invoices.filter((i) => i.status === "ACTIVE").length
+    const resolved = credit.invoicesSettled + credit.invoicesDefaulted
+    const onTimeRate =
+      resolved > 0
+        ? Math.round((credit.invoicesSettled / resolved) * 100)
+        : null
 
-    const totalVolumeFinanced = financed.reduce((sum, i) => {
-      const advance =
-        i.advanceRate !== null
-          ? (i.amountUSDC * BigInt(i.advanceRate)) / 100n
-          : 0n
-      return sum + advance
-    }, 0n)
+    // Average days to settle across settled invoices.
+    const settledInvoices = invoices.filter((i) => i.status === "SETTLED")
+    let avgDaysToSettle: number | null = null
+    if (settledInvoices.length > 0) {
+      const totalDays = settledInvoices.reduce((sum, i) => {
+        const end = i.settledAt ?? i.updatedAt
+        return (
+          sum +
+          Math.max(
+            0,
+            Math.round((end.getTime() - i.createdAt.getTime()) / 86_400_000)
+          )
+        )
+      }, 0)
+      avgDaysToSettle = Math.round(totalDays / settledInvoices.length)
+    }
 
-    const resolved = settled + defaulted
-    const onTimeRate = resolved > 0 ? Math.round((settled / resolved) * 100) : null
+    const wallet = await prisma.wallet.findUnique({ where: { userId } })
 
     return NextResponse.json({
       data: {
-        creditScore,
-        totalVolumeFinanced: totalVolumeFinanced.toString(),
+        score: credit.score,
+        label: credit.label,
+        totalEvents: credit.totalEvents,
+        invoicesSettled: credit.invoicesSettled,
+        invoicesDefaulted: credit.invoicesDefaulted,
+        totalVolumeUSDC: credit.totalVolumeUSDC,
         onTimeRate,
-        invoicesFinanced: financed.length,
-        totalInvoices: invoices.length,
-        events: events.map((e) => ({
-          id: e.id,
-          type: e.type,
-          scoreChange: e.scoreChange,
-          newScore: e.newScore,
-          invoiceId: e.invoiceId,
-          createdAt: e.createdAt.toISOString(),
-        })),
-        invoices: invoices.slice(0, 10).map((i) => ({
+        avgDaysToSettle,
+        activeInvoices,
+        address: wallet?.address ?? null,
+        blockchain: wallet?.blockchain ?? "ARC-TESTNET",
+        invoices: invoices.map((i) => ({
           id: i.id,
           title: i.title,
           status: i.status,
           amountUSDC: i.amountUSDC.toString(),
           createdAt: i.createdAt.toISOString(),
-          settledAt: i.settledAt ? i.settledAt.toISOString() : null,
         })),
       },
     })
