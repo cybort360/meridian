@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { computeCreditScore } from "@/lib/utils/creditScore"
 
 function dayKey(d: Date): string {
   return d.toISOString().slice(0, 10)
@@ -22,7 +23,6 @@ export async function GET() {
       where: isInvestor ? { investorId: userId } : { smeId: userId },
     })
 
-    const scored = invoices.filter((i) => i.riskScore !== null)
     const settled = invoices.filter((i) => i.status === "SETTLED").length
     const defaulted = invoices.filter((i) => i.status === "DEFAULTED").length
     const activeInvoices = invoices.filter((i) => i.status === "ACTIVE").length
@@ -37,13 +37,8 @@ export async function GET() {
         return sum + advance
       }, 0n)
 
-    const avgRiskScore =
-      scored.length > 0
-        ? Math.round(
-            scored.reduce((sum, i) => sum + (i.riskScore ?? 0), 0) /
-              scored.length
-          )
-        : null
+    // Credit Score from the shared FICO-style utility (300–850).
+    const { score: creditScore } = await computeCreditScore(userId)
 
     const resolved = settled + defaulted
     const onTimeRate =
@@ -100,9 +95,9 @@ export async function GET() {
       }
     }
 
-    // Build a continuous 14-day flow series (base units as string per day).
+    // Build a continuous 30-day flow series (base units as string per day).
     const flow: Array<{ date: string; amount: string }> = []
-    for (let i = 13; i >= 0; i--) {
+    for (let i = 29; i >= 0; i--) {
       const d = new Date()
       d.setDate(d.getDate() - i)
       const key = dayKey(d)
@@ -114,7 +109,7 @@ export async function GET() {
         stats: {
           totalVolumeFinanced: totalVolumeFinanced.toString(),
           activeInvoices,
-          avgRiskScore,
+          creditScore,
           onTimeRate,
         },
         recentActivity,

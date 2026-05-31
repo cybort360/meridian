@@ -24,7 +24,7 @@ export function LiveFlowChart({ flow }: { flow: FlowPoint[] }) {
   return (
     <Card className="border-slate-800 bg-slate-900 text-slate-100">
       <CardHeader>
-        <CardTitle className="text-base">USDC flow (14 days)</CardTitle>
+        <CardTitle className="text-base">USDC flow (30 days)</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-64 w-full">

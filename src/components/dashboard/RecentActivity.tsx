@@ -1,6 +1,6 @@
 "use client"
 
-import { format } from "date-fns"
+import { formatDistanceToNow } from "date-fns"
 import { ArrowDownLeft, ArrowUpRight, Activity } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { USDCAmount } from "@/components/shared/USDCAmount"
@@ -58,12 +58,28 @@ export function RecentActivity({ items }: { items: ActivityItem[] }) {
                       </p>
                       <p className="truncate text-xs text-slate-500">
                         {inbound ? "from" : "to"} {item.counterparty} ·{" "}
-                        {format(new Date(item.createdAt), "MMM d")}
+                        {formatDistanceToNow(new Date(item.createdAt), {
+                          addSuffix: true,
+                        })}
                       </p>
                     </div>
                   </div>
                   <div className="flex flex-col items-end">
-                    <USDCAmount baseUnits={BigInt(item.amountUSDC)} size="sm" />
+                    <span className="flex items-center font-mono text-sm font-semibold">
+                      <span
+                        className={cn(
+                          "mr-0.5",
+                          inbound ? "text-emerald-400" : "text-red-400"
+                        )}
+                      >
+                        {inbound ? "+" : "−"}
+                      </span>
+                      <USDCAmount
+                        baseUnits={BigInt(item.amountUSDC)}
+                        size="sm"
+                        className={inbound ? "text-emerald-400" : "text-red-400"}
+                      />
+                    </span>
                     <span
                       className={cn(
                         "text-xs",

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react"
 export interface DashboardStats {
   totalVolumeFinanced: string
   activeInvoices: number
-  avgRiskScore: number | null
+  creditScore: number
   onTimeRate: number | null
 }
 
