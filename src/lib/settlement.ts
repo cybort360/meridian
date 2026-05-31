@@ -133,11 +133,13 @@ export async function fundInvoice(
   })
 }
 
-// Simulates buyer repayment + settlement waterfall:
-//   SME wallet → investor wallet for (principal advance + fee yield).
-// (The per-invoice escrow served its purpose at funding; settlement pays the
-// investor their principal plus yield directly.) Records SETTLEMENT payment,
-// writes a positive CreditEvent for the SME, and moves invoice to SETTLED.
+// Settlement waterfall (simulates the buyer repaying):
+//   SME wallet  → escrow            (full invoice amount)
+//   escrow      → investor wallet   (principal = advance; type SETTLEMENT)
+//   escrow      → platform wallet   (protocol fee)
+//   escrow      → SME wallet        (holdback = invoice − advance − fee)
+// Records REPAYMENT + SETTLEMENT payments, writes an on-time CreditEvent for
+// the SME, and moves the invoice to SETTLED.
 export async function settleInvoice(
   invoiceId: string
 ): Promise<InvoiceWithRelations> {
@@ -162,32 +164,87 @@ export async function settleInvoice(
     throw new SettlementError("Both parties need wallets to settle.")
   }
 
-  const advance = advanceAmount(invoice.amountUSDC, invoice.advanceRate)
-  const fee = feeAmount(advance, invoice.feeRate)
-  const investorReturn = advance + fee
-
-  const settlement = await transferUSDC({
-    fromCircleWalletId: smeWallet.circleWalletId,
-    toAddress: investorWallet.address,
-    amountBaseUnits: investorReturn,
+  const escrowWallet = await prisma.wallet.findFirst({
+    where: { invoiceId, isEscrow: true },
   })
-  const status = await pollTransaction(settlement.circlePaymentId)
+  if (!escrowWallet) {
+    throw new SettlementError("Escrow wallet not found for this invoice.")
+  }
 
+  const platformAddress = process.env.PLATFORM_WALLET_ADDRESS
+  if (!platformAddress || platformAddress === "REPLACE_ME") {
+    throw new SettlementError(
+      "Platform fee wallet is not configured (PLATFORM_WALLET_ADDRESS)."
+    )
+  }
+
+  const amount = invoice.amountUSDC
+  const principalToInvestor = advanceAmount(amount, invoice.advanceRate)
+  const feeToProtocol =
+    invoice.feeAmountUSDC ?? feeAmount(principalToInvestor, invoice.feeRate)
+  const holdbackToSme = amount - principalToInvestor - feeToProtocol
+
+  // 1. SME → escrow: full invoice amount (simulates the buyer repaying).
+  const repay = await transferUSDC({
+    fromCircleWalletId: smeWallet.circleWalletId,
+    toAddress: escrowWallet.address,
+    amountBaseUnits: amount,
+  })
+  const repayStatus = await pollTransaction(repay.circlePaymentId)
   await prisma.payment.create({
     data: {
       senderWalletId: smeWallet.id,
-      receiverWalletId: investorWallet.id,
+      receiverWalletId: escrowWallet.id,
       invoiceId,
-      amountUSDC: investorReturn,
-      type: "SETTLEMENT",
-      status: toPaymentStatus(status.state),
-      circlePaymentId: settlement.circlePaymentId,
-      txHash: status.txHash,
+      amountUSDC: amount,
+      type: "REPAYMENT",
+      status: toPaymentStatus(repayStatus.state),
+      circlePaymentId: repay.circlePaymentId,
+      txHash: repayStatus.txHash,
       blockchain: smeWallet.blockchain,
     },
   })
 
-  // Credit passport event for the SME.
+  // 2. escrow → investor: principal (the advance).
+  const payout = await transferUSDC({
+    fromCircleWalletId: escrowWallet.circleWalletId,
+    toAddress: investorWallet.address,
+    amountBaseUnits: principalToInvestor,
+  })
+  const payoutStatus = await pollTransaction(payout.circlePaymentId)
+  await prisma.payment.create({
+    data: {
+      senderWalletId: escrowWallet.id,
+      receiverWalletId: investorWallet.id,
+      invoiceId,
+      amountUSDC: principalToInvestor,
+      type: "SETTLEMENT",
+      status: toPaymentStatus(payoutStatus.state),
+      circlePaymentId: payout.circlePaymentId,
+      txHash: payoutStatus.txHash,
+      blockchain: escrowWallet.blockchain,
+    },
+  })
+
+  // 3. escrow → platform fee wallet: protocol fee.
+  const feeTransfer = await transferUSDC({
+    fromCircleWalletId: escrowWallet.circleWalletId,
+    toAddress: platformAddress,
+    amountBaseUnits: feeToProtocol,
+  })
+  await pollTransaction(feeTransfer.circlePaymentId)
+
+  // 4. escrow → SME: holdback (invoice − advance − fee), so escrow nets to zero.
+  if (holdbackToSme > 0n) {
+    const holdback = await transferUSDC({
+      fromCircleWalletId: escrowWallet.circleWalletId,
+      toAddress: smeWallet.address,
+      amountBaseUnits: holdbackToSme,
+    })
+    await pollTransaction(holdback.circlePaymentId)
+  }
+
+  // Credit passport event for the SME (on-time settlement).
   const last = await prisma.creditEvent.findFirst({
     where: { userId: invoice.smeId },
     orderBy: { createdAt: "desc" },
@@ -196,7 +253,7 @@ export async function settleInvoice(
   await prisma.creditEvent.create({
     data: {
       userId: invoice.smeId,
-      type: "INVOICE_SETTLED",
+      type: "INVOICE_SETTLED_ON_TIME",
       invoiceId,
       scoreChange: SETTLE_SCORE_DELTA,
       newScore: base + SETTLE_SCORE_DELTA,

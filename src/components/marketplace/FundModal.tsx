@@ -43,9 +43,8 @@ export function FundModal({
     invoice.advanceRate !== null
       ? (amount * BigInt(invoice.advanceRate)) / 100n
       : 0n
-  // Fee is charged on the advanced principal (feeRate is basis points).
-  const feeBaseUnits = (advanceBaseUnits * BigInt(invoice.feeRate)) / 10_000n
-  const expectedReturn = advanceBaseUnits + feeBaseUnits
+  // Investor is repaid their principal at settlement; the fee goes to the protocol.
+  const principalReturned = advanceBaseUnits
 
   async function confirm() {
     setLoading(true)
@@ -85,7 +84,7 @@ export function FundModal({
         <DialogHeader>
           <DialogTitle>{invoice.title}</DialogTitle>
           <DialogDescription className="text-slate-400">
-            You&apos;ll advance USDC now and receive principal plus yield when the
+            You&apos;ll advance USDC now and be repaid your principal when the
             buyer repays.
           </DialogDescription>
         </DialogHeader>
@@ -120,8 +119,8 @@ export function FundModal({
               value={<USDCAmount baseUnits={advanceBaseUnits} size="sm" />}
             />
             <Row
-              label="Expected return"
-              value={<USDCAmount baseUnits={expectedReturn} size="sm" />}
+              label="Principal returned"
+              value={<USDCAmount baseUnits={principalReturned} size="sm" />}
             />
           </div>
         </div>

@@ -12,7 +12,8 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "circle:bootstrap": "tsx --env-file=.env.local scripts/circle-bootstrap.ts",
-    "circle:setup": "tsx --env-file=.env.local scripts/circle-setup.ts"
+    "circle:setup": "tsx --env-file=.env.local scripts/circle-setup.ts",
+    "circle:platform-wallet": "tsx --env-file=.env.local scripts/circle-platform-wallet.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
