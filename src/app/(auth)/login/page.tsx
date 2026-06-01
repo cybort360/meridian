@@ -1,10 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Loader2 } from "lucide-react"
+import { Loader2, CheckCircle2 } from "lucide-react"
 import {
   Card,
   CardContent,
@@ -16,40 +16,89 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { FormBanner } from "@/components/shared/FormBanner"
+import { FieldError } from "@/components/shared/FieldError"
 import { loginSchema } from "@/lib/utils/validation"
+import { cn } from "@/lib/utils"
+
+type FieldErrors = { email?: string; password?: string }
+
+const inputBase = "bg-slate-800"
+const errorBorder = "border-red-500"
+const normalBorder = "border-slate-700"
+const CREDENTIALS_ERROR = "Incorrect email or password. Please try again."
 
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [error, setError] = useState<string | null>(null)
+  const [errors, setErrors] = useState<FieldErrors>({})
+  const [banner, setBanner] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+
+  const disabled = loading || success
+
+  // Surface NextAuth's default ?error=CredentialsSignin redirect without a resubmit.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get("error") === "CredentialsSignin") {
+      setBanner(CREDENTIALS_ERROR)
+    }
+  }, [])
+
+  function fieldError(field: "email" | "password", value: string): string | undefined {
+    const res = loginSchema.shape[field].safeParse(value)
+    return res.success ? undefined : res.error.issues[0]?.message
+  }
+
+  function handleBlur(field: "email" | "password") {
+    const value = { email, password }[field]
+    setErrors((prev) => ({ ...prev, [field]: fieldError(field, value) }))
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setError(null)
+    setBanner(null)
 
     const parsed = loginSchema.safeParse({ email, password })
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? "Please check your details.")
+      const fe = parsed.error.flatten().fieldErrors
+      setErrors({ email: fe.email?.[0], password: fe.password?.[0] })
       return
     }
+    setErrors({})
 
     setLoading(true)
-    const res = await signIn("credentials", {
-      email: parsed.data.email,
-      password: parsed.data.password,
-      redirect: false,
-    })
-    setLoading(false)
+    try {
+      const res = await signIn("credentials", {
+        email: parsed.data.email,
+        password: parsed.data.password,
+        redirect: false,
+      })
 
-    if (!res || res.error) {
-      setError("Invalid email or password.")
-      return
+      if (!res || res.error) {
+        setLoading(false)
+        // Don't reveal whether the email or the password was wrong.
+        setBanner(
+          res?.error === "CredentialsSignin"
+            ? CREDENTIALS_ERROR
+            : "Sign in failed. Please try again."
+        )
+        return
+      }
+
+      // Success — hold a brief confirmation state before redirecting.
+      setLoading(false)
+      setSuccess(true)
+      setTimeout(() => {
+        router.push("/dashboard")
+        router.refresh()
+      }, 800)
+    } catch {
+      setLoading(false)
+      setBanner("Connection error. Check your internet and try again.")
     }
-
-    router.push("/dashboard")
-    router.refresh()
   }
 
   return (
@@ -60,46 +109,76 @@ export default function LoginPage() {
           Sign in to your Meridian account.
         </CardDescription>
       </CardHeader>
-      <form onSubmit={onSubmit}>
+      <form onSubmit={onSubmit} noValidate>
         <CardContent className="space-y-4">
-          {error && (
-            <p className="rounded-md border border-red-400/20 bg-red-400/10 px-3 py-2 text-sm text-red-400">
-              {error}
-            </p>
+          {banner && (
+            <FormBanner
+              type="error"
+              message={banner}
+              onDismiss={() => setBanner(null)}
+            />
           )}
-          <div className="space-y-2">
+
+          <div className="space-y-1">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
               autoComplete="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="border-slate-700 bg-slate-800"
+              disabled={disabled}
+              onChange={(e) => {
+                setEmail(e.target.value)
+                if (errors.email) setErrors((p) => ({ ...p, email: undefined }))
+              }}
+              onBlur={() => handleBlur("email")}
+              className={cn(inputBase, errors.email ? errorBorder : normalBorder)}
               placeholder="you@company.ae"
             />
+            <FieldError message={errors.email} />
           </div>
-          <div className="space-y-2">
+
+          <div className="space-y-1">
             <Label htmlFor="password">Password</Label>
             <Input
               id="password"
               type="password"
               autoComplete="current-password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="border-slate-700 bg-slate-800"
+              disabled={disabled}
+              onChange={(e) => {
+                setPassword(e.target.value)
+                if (errors.password)
+                  setErrors((p) => ({ ...p, password: undefined }))
+              }}
+              onBlur={() => handleBlur("password")}
+              className={cn(
+                inputBase,
+                errors.password ? errorBorder : normalBorder
+              )}
               placeholder="••••••••"
             />
+            <FieldError message={errors.password} />
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
           <Button
             type="submit"
-            disabled={loading}
-            className="w-full bg-emerald-500 text-slate-950 hover:bg-emerald-400"
+            disabled={disabled}
+            className={cn(
+              "w-full text-slate-950",
+              success
+                ? "bg-emerald-600 hover:bg-emerald-600"
+                : "bg-emerald-500 hover:bg-emerald-400"
+            )}
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Sign in
+            {success && <CheckCircle2 className="mr-2 h-4 w-4" />}
+            {success
+              ? "Logged in — loading your dashboard"
+              : loading
+                ? "Signing in..."
+                : "Sign in"}
           </Button>
           <p className="text-center text-sm text-slate-400">
             Don&apos;t have an account?{" "}

@@ -23,9 +23,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { FormBanner } from "@/components/shared/FormBanner"
+import { FieldError } from "@/components/shared/FieldError"
 import { registerSchema } from "@/lib/utils/validation"
+import { cn } from "@/lib/utils"
 
 type Role = "SME" | "INVESTOR"
+type FieldErrors = {
+  name?: string
+  companyName?: string
+  email?: string
+  password?: string
+}
+
+const inputBase = "bg-slate-800"
+const errorBorder = "border-red-500"
+const normalBorder = "border-slate-700"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -34,24 +47,52 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [role, setRole] = useState<Role>("SME")
-  const [error, setError] = useState<string | null>(null)
+
+  const [errors, setErrors] = useState<FieldErrors>({})
+  const [emailExists, setEmailExists] = useState(false)
+  const [serverError, setServerError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+
+  const disabled = loading || success
+
+  // Validate one field against its slice of the Zod schema.
+  function fieldError(
+    field: "name" | "companyName" | "email" | "password",
+    value: string
+  ): string | undefined {
+    const res = registerSchema.shape[field].safeParse(value)
+    return res.success ? undefined : res.error.issues[0]?.message
+  }
+
+  function handleBlur(field: "name" | "companyName" | "email" | "password") {
+    const value = { name, companyName, email, password }[field]
+    setErrors((prev) => ({ ...prev, [field]: fieldError(field, value) }))
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setError(null)
+    setServerError(null)
+    setEmailExists(false)
 
     const parsed = registerSchema.safeParse({
       name,
-      companyName,
       email,
       password,
+      companyName,
       role,
     })
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? "Please check your details.")
+      const fe = parsed.error.flatten().fieldErrors
+      setErrors({
+        name: fe.name?.[0],
+        companyName: fe.companyName?.[0],
+        email: fe.email?.[0],
+        password: fe.password?.[0],
+      })
       return
     }
+    setErrors({})
 
     setLoading(true)
     try {
@@ -62,29 +103,35 @@ export default function RegisterPage() {
       })
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        setError(data.error ?? "Could not create your account. Please try again.")
         setLoading(false)
+        if (res.status === 409) {
+          setEmailExists(true)
+          return
+        }
+        setServerError("Something went wrong. Please try again.")
         return
       }
 
+      // Success — show the banner, sign in behind it, then redirect.
+      setLoading(false)
+      setSuccess(true)
       const signInRes = await signIn("credentials", {
         email: parsed.data.email,
         password: parsed.data.password,
         redirect: false,
       })
-
-      if (!signInRes || signInRes.error) {
-        router.push("/login")
-        return
-      }
-
-      // New users see the one-time onboarding flywheel before the dashboard.
-      router.push("/onboarding")
-      router.refresh()
+      setTimeout(() => {
+        if (!signInRes || signInRes.error) {
+          router.push("/login")
+        } else {
+          // New users see the one-time onboarding flywheel first.
+          router.push("/onboarding")
+          router.refresh()
+        }
+      }, 1500)
     } catch {
-      setError("Could not create your account. Please try again.")
       setLoading(false)
+      setServerError("Connection error. Check your internet and try again.")
     }
   }
 
@@ -96,64 +143,123 @@ export default function RegisterPage() {
           Join Meridian as an SME or an investor.
         </CardDescription>
       </CardHeader>
-      <form onSubmit={onSubmit}>
+      <form onSubmit={onSubmit} noValidate>
         <CardContent className="space-y-4">
-          {error && (
-            <p className="rounded-md border border-red-400/20 bg-red-400/10 px-3 py-2 text-sm text-red-400">
-              {error}
-            </p>
+          {success && (
+            <FormBanner
+              type="success"
+              message="Account created! Setting up your wallet..."
+            />
           )}
-          <div className="space-y-2">
+          {serverError && (
+            <FormBanner
+              type="error"
+              message={serverError}
+              onDismiss={() => setServerError(null)}
+            />
+          )}
+
+          <div className="space-y-1">
             <Label htmlFor="name">Full name</Label>
             <Input
               id="name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="border-slate-700 bg-slate-800"
+              disabled={disabled}
+              onChange={(e) => {
+                setName(e.target.value)
+                if (errors.name) setErrors((p) => ({ ...p, name: undefined }))
+              }}
+              onBlur={() => handleBlur("name")}
+              className={cn(inputBase, errors.name ? errorBorder : normalBorder)}
               placeholder="Layla Hassan"
             />
+            <FieldError message={errors.name} />
           </div>
-          <div className="space-y-2">
+
+          <div className="space-y-1">
             <Label htmlFor="companyName">Company name</Label>
             <Input
               id="companyName"
               value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              className="border-slate-700 bg-slate-800"
+              disabled={disabled}
+              onChange={(e) => {
+                setCompanyName(e.target.value)
+                if (errors.companyName)
+                  setErrors((p) => ({ ...p, companyName: undefined }))
+              }}
+              onBlur={() => handleBlur("companyName")}
+              className={cn(
+                inputBase,
+                errors.companyName ? errorBorder : normalBorder
+              )}
               placeholder="Gulf Trading LLC"
             />
+            <FieldError message={errors.companyName} />
           </div>
-          <div className="space-y-2">
+
+          <div className="space-y-1">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
               autoComplete="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="border-slate-700 bg-slate-800"
+              disabled={disabled}
+              onChange={(e) => {
+                setEmail(e.target.value)
+                if (errors.email) setErrors((p) => ({ ...p, email: undefined }))
+                if (emailExists) setEmailExists(false)
+              }}
+              onBlur={() => handleBlur("email")}
+              className={cn(
+                inputBase,
+                errors.email || emailExists ? errorBorder : normalBorder
+              )}
               placeholder="you@company.ae"
             />
+            {emailExists ? (
+              <p className="mt-1 text-xs text-red-400">
+                An account with this email already exists.{" "}
+                <Link href="/login" className="underline hover:text-red-300">
+                  Log in instead?
+                </Link>
+              </p>
+            ) : (
+              <FieldError message={errors.email} />
+            )}
           </div>
-          <div className="space-y-2">
+
+          <div className="space-y-1">
             <Label htmlFor="password">Password</Label>
             <Input
               id="password"
               type="password"
               autoComplete="new-password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="border-slate-700 bg-slate-800"
+              disabled={disabled}
+              onChange={(e) => {
+                setPassword(e.target.value)
+                if (errors.password)
+                  setErrors((p) => ({ ...p, password: undefined }))
+              }}
+              onBlur={() => handleBlur("password")}
+              className={cn(
+                inputBase,
+                errors.password ? errorBorder : normalBorder
+              )}
               placeholder="At least 8 characters"
             />
+            <FieldError message={errors.password} />
           </div>
-          <div className="space-y-2">
+
+          <div className="space-y-1">
             <Label htmlFor="role">Account type</Label>
-            <Select value={role} onValueChange={(v) => setRole(v as Role)}>
-              <SelectTrigger
-                id="role"
-                className="border-slate-700 bg-slate-800"
-              >
+            <Select
+              value={role}
+              onValueChange={(v) => setRole(v as Role)}
+              disabled={disabled}
+            >
+              <SelectTrigger id="role" className="border-slate-700 bg-slate-800">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -168,11 +274,11 @@ export default function RegisterPage() {
         <CardFooter className="flex flex-col gap-4">
           <Button
             type="submit"
-            disabled={loading}
+            disabled={disabled}
             className="w-full bg-emerald-500 text-slate-950 hover:bg-emerald-400"
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Create account
+            {loading ? "Creating your account..." : "Create account"}
           </Button>
           <p className="text-center text-sm text-slate-400">
             Already have an account?{" "}
