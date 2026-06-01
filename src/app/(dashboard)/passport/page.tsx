@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { PassportSkeleton } from "@/components/shared/Skeletons"
 import { ErrorMessage } from "@/components/shared/ErrorMessage"
 import { EmptyState } from "@/components/shared/EmptyState"
+import { useLanguage } from "@/hooks/useLanguage"
 import { ARC_EXPLORER_URL } from "@/lib/constants"
 
 function Stat({ label, children }: { label: string; children: React.ReactNode }) {
@@ -97,12 +98,13 @@ function ArcAddressCard({
 
 export default function PassportPage() {
   const { passport, loading, error } = usePassport()
+  const { t } = useLanguage()
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-slate-100">
-          Credit Passport
+          {t("nav.passport")}
         </h1>
         <p className="mt-1 text-sm text-slate-400">
           A verifiable, on-chain financial identity built from every settled

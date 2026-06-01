@@ -3,12 +3,14 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { NAV_ITEMS } from "@/lib/constants"
+import { useLanguage } from "@/hooks/useLanguage"
 import { cn } from "@/lib/utils"
 
 // Mobile bottom tab bar — the Sidebar is hidden below md and this takes over.
 // Fixed to the bottom with safe-area padding for notched devices.
 export function MobileNav() {
   const pathname = usePathname()
+  const { t } = useLanguage()
 
   return (
     <nav
@@ -35,7 +37,7 @@ export function MobileNav() {
               >
                 <Icon className="h-5 w-5" />
                 <span className="w-full truncate text-center">
-                  {item.label}
+                  {item.i18nKey ? t(item.i18nKey) : item.label}
                 </span>
               </Link>
             </li>

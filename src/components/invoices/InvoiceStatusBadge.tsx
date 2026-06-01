@@ -1,4 +1,7 @@
+"use client"
+
 import { cn } from "@/lib/utils"
+import { useLanguage } from "@/hooks/useLanguage"
 import type { InvoiceStatus } from "@/types"
 
 const STATUS_STYLES: Record<InvoiceStatus, string> = {
@@ -13,6 +16,7 @@ const STATUS_STYLES: Record<InvoiceStatus, string> = {
 }
 
 export function InvoiceStatusBadge({ status }: { status: InvoiceStatus }) {
+  const { t } = useLanguage()
   return (
     <span
       className={cn(
@@ -20,7 +24,7 @@ export function InvoiceStatusBadge({ status }: { status: InvoiceStatus }) {
         STATUS_STYLES[status]
       )}
     >
-      {status.charAt(0) + status.slice(1).toLowerCase()}
+      {t(`status.${status.toLowerCase()}`)}
     </span>
   )
 }

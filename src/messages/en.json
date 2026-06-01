@@ -1,0 +1,40 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "invoices": "Invoices",
+    "marketplace": "Marketplace",
+    "wallet": "Wallet",
+    "passport": "Credit Passport"
+  },
+  "dashboard": {
+    "title": "Command Center",
+    "totalFinanced": "Total Financed",
+    "activeInvoices": "Active Invoices",
+    "creditScore": "Credit Score",
+    "onTimeRate": "On-Time Rate"
+  },
+  "invoices": {
+    "create": "New Invoice",
+    "amount": "Amount (USDC)",
+    "buyer": "Buyer Name",
+    "dueDate": "Due Date",
+    "submit": "Submit Invoice"
+  },
+  "status": {
+    "pending": "Pending",
+    "scored": "Scored",
+    "funded": "Funded",
+    "active": "Active",
+    "repaid": "Repaid",
+    "settled": "Settled",
+    "defaulted": "Defaulted",
+    "cancelled": "Cancelled"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  }
+}

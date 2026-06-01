@@ -11,8 +11,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { WalletSkeleton } from "@/components/shared/Skeletons"
 import { ErrorMessage } from "@/components/shared/ErrorMessage"
 import { EmptyState } from "@/components/shared/EmptyState"
+import { useLanguage } from "@/hooks/useLanguage"
 
 export default function WalletPage() {
+  const { t } = useLanguage()
   const {
     wallet,
     transactions,
@@ -28,7 +30,7 @@ export default function WalletPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-slate-100">
-          Wallet
+          {t("nav.wallet")}
         </h1>
         <p className="mt-1 text-sm text-slate-400">
           Your Circle wallet on Arc testnet. USDC is the native gas token.

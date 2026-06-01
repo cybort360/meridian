@@ -4,13 +4,15 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Compass } from "lucide-react"
 import { NAV_ITEMS, APP_NAME } from "@/lib/constants"
+import { useLanguage } from "@/hooks/useLanguage"
 import { cn } from "@/lib/utils"
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { t } = useLanguage()
 
   return (
-    <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-800 bg-slate-900 md:flex">
+    <aside className="hidden w-64 shrink-0 flex-col border-e border-slate-800 bg-slate-900 md:flex">
       <Link
         href="/dashboard"
         className="flex h-16 items-center gap-2 border-b border-slate-800 px-6"
@@ -40,7 +42,7 @@ export function Sidebar() {
               )}
             >
               <Icon className="h-4 w-4" />
-              {item.label}
+              {item.i18nKey ? t(item.i18nKey) : item.label}
             </Link>
           )
         })}

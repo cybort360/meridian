@@ -5,6 +5,7 @@ import { LogOut, Compass } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { APP_NAME } from "@/lib/constants"
 import { useRealtimeUpdates } from "@/hooks/useRealtimeUpdates"
+import { LanguageToggle } from "@/components/shared/LanguageToggle"
 import { cn } from "@/lib/utils"
 
 function LiveIndicator() {
@@ -41,7 +42,8 @@ export function TopBar() {
         </span>
         <span className="font-semibold text-slate-100">{APP_NAME}</span>
       </div>
-      <div className="ml-auto flex items-center gap-3">
+      <div className="ms-auto flex items-center gap-3">
+        <LanguageToggle />
         <LiveIndicator />
         {session?.user && (
           <div className="hidden text-right sm:block">

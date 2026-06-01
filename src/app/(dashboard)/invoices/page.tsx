@@ -11,11 +11,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { InvoiceGridSkeleton } from "@/components/shared/Skeletons"
 import { ErrorMessage } from "@/components/shared/ErrorMessage"
 import { EmptyState } from "@/components/shared/EmptyState"
+import { useLanguage } from "@/hooks/useLanguage"
 
 export default function InvoicesPage() {
   const { data: session } = useSession()
   const { invoices, loading, error, refetch } = useInvoices()
   const [showForm, setShowForm] = useState(false)
+  const { t } = useLanguage()
 
   const isSme = session?.user?.role === "SME"
 
@@ -24,7 +26,7 @@ export default function InvoicesPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-100">
-            Invoices
+            {t("nav.invoices")}
           </h1>
           <p className="mt-1 text-sm text-slate-400">
             {isSme

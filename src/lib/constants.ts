@@ -14,14 +14,16 @@ export interface NavItem {
   label: string
   href: string
   icon: LucideIcon
+  // Dot-notation i18n key (see src/messages). Omitted items fall back to label.
+  i18nKey?: string
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Invoices", href: "/invoices", icon: FileText },
-  { label: "Marketplace", href: "/marketplace", icon: Store },
-  { label: "Wallet", href: "/wallet", icon: Wallet },
-  { label: "Passport", href: "/passport", icon: IdCard },
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, i18nKey: "nav.dashboard" },
+  { label: "Invoices", href: "/invoices", icon: FileText, i18nKey: "nav.invoices" },
+  { label: "Marketplace", href: "/marketplace", icon: Store, i18nKey: "nav.marketplace" },
+  { label: "Wallet", href: "/wallet", icon: Wallet, i18nKey: "nav.wallet" },
+  { label: "Passport", href: "/passport", icon: IdCard, i18nKey: "nav.passport" },
   { label: "Settings", href: "/settings", icon: Settings },
 ]
 

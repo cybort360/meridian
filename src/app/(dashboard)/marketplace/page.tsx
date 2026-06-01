@@ -7,17 +7,19 @@ import { InvoiceListing } from "@/components/marketplace/InvoiceListing"
 import { InvoiceGridSkeleton } from "@/components/shared/Skeletons"
 import { ErrorMessage } from "@/components/shared/ErrorMessage"
 import { EmptyState } from "@/components/shared/EmptyState"
+import { useLanguage } from "@/hooks/useLanguage"
 
 export default function MarketplacePage() {
   const { data: session } = useSession()
   const { invoices, loading, error, refetch } = useInvoices({ scope: "market" })
   const canFund = session?.user?.role === "INVESTOR"
+  const { t } = useLanguage()
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-slate-100">
-          Marketplace
+          {t("nav.marketplace")}
         </h1>
         <p className="mt-1 text-sm text-slate-400">
           AI-scored invoices available to fund in USDC.

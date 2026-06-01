@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ErrorMessage } from "@/components/shared/ErrorMessage"
 import { createInvoiceSchema } from "@/lib/utils/invoiceValidation"
+import { useLanguage } from "@/hooks/useLanguage"
 import { cn } from "@/lib/utils"
 import type { InvoiceDTO } from "@/types/invoiceDto"
 import type { ParsedInvoice } from "@/lib/ai/invoiceParsing"
@@ -21,6 +22,7 @@ export function InvoiceForm({
   onSuccess: (invoice: InvoiceDTO) => void
   onCancel?: () => void
 }) {
+  const { t } = useLanguage()
   const [title, setTitle] = useState("")
   const [invoiceNumber, setInvoiceNumber] = useState("")
   const [buyerName, setBuyerName] = useState("")
@@ -234,7 +236,7 @@ export function InvoiceForm({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="amount">Amount (USDC)</Label>
+          <Label htmlFor="amount">{t("invoices.amount")}</Label>
           <Input
             id="amount"
             type="number"
@@ -250,7 +252,7 @@ export function InvoiceForm({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="buyerName">Buyer name</Label>
+          <Label htmlFor="buyerName">{t("invoices.buyer")}</Label>
           <Input
             id="buyerName"
             value={buyerName}
@@ -273,7 +275,7 @@ export function InvoiceForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="dueDate">Due date</Label>
+        <Label htmlFor="dueDate">{t("invoices.dueDate")}</Label>
         <Input
           id="dueDate"
           type="date"
@@ -301,8 +303,8 @@ export function InvoiceForm({
           disabled={loading}
           className="bg-emerald-500 text-slate-950 hover:bg-emerald-400"
         >
-          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Create &amp; score
+          {loading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+          {t("invoices.submit")}
         </Button>
         {onCancel && (
           <Button
@@ -311,7 +313,7 @@ export function InvoiceForm({
             onClick={onCancel}
             className="border-slate-700 bg-transparent text-slate-100 hover:bg-slate-800"
           >
-            Cancel
+            {t("common.cancel")}
           </Button>
         )}
       </div>

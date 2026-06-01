@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Arabic mode: swap in Noto Sans Arabic ahead of the Geist sans stack.
+   Targets body too, since it carries the `font-sans` utility that would
+   otherwise win over a rule on <html>. Monospace (amounts) stays Geist Mono. */
+html[lang="ar"],
+html[lang="ar"] body {
+  font-family: "Noto Sans Arabic", var(--font-geist-sans), sans-serif;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

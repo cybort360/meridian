@@ -6,6 +6,7 @@ import type { LucideIcon } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { USDCAmount } from "@/components/shared/USDCAmount"
 import { labelForScore } from "@/lib/utils/creditScore"
+import { useLanguage } from "@/hooks/useLanguage"
 import type { DashboardStats } from "@/hooks/useDashboard"
 
 interface StatDef {
@@ -16,9 +17,10 @@ interface StatDef {
 }
 
 export function StatsGrid({ stats }: { stats: DashboardStats }) {
+  const { t } = useLanguage()
   const items: StatDef[] = [
     {
-      label: "Total Volume Financed",
+      label: t("dashboard.totalFinanced"),
       icon: TrendingUp,
       trend: "Advanced to date",
       render: () => (
@@ -26,7 +28,7 @@ export function StatsGrid({ stats }: { stats: DashboardStats }) {
       ),
     },
     {
-      label: "Active Invoices",
+      label: t("dashboard.activeInvoices"),
       icon: FileClock,
       trend: "Capital in flight",
       render: () => (
@@ -36,7 +38,7 @@ export function StatsGrid({ stats }: { stats: DashboardStats }) {
       ),
     },
     {
-      label: "Credit Score",
+      label: t("dashboard.creditScore"),
       icon: Gauge,
       trend: `${labelForScore(stats.creditScore)} · 300–850`,
       render: () => (
@@ -46,7 +48,7 @@ export function StatsGrid({ stats }: { stats: DashboardStats }) {
       ),
     },
     {
-      label: "On-Time Rate",
+      label: t("dashboard.onTimeRate"),
       icon: CheckCircle2,
       trend: "Settled vs. defaulted",
       render: () => (

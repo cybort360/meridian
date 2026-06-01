@@ -1,0 +1,40 @@
+{
+  "nav": {
+    "dashboard": "لوحة التحكم",
+    "invoices": "الفواتير",
+    "marketplace": "السوق",
+    "wallet": "المحفظة",
+    "passport": "جواز الائتمان"
+  },
+  "dashboard": {
+    "title": "مركز التحكم",
+    "totalFinanced": "إجمالي التمويل",
+    "activeInvoices": "الفواتير النشطة",
+    "creditScore": "درجة الائتمان",
+    "onTimeRate": "معدل الالتزام"
+  },
+  "invoices": {
+    "create": "فاتورة جديدة",
+    "amount": "المبلغ (USDC)",
+    "buyer": "اسم المشتري",
+    "dueDate": "تاريخ الاستحقاق",
+    "submit": "تقديم الفاتورة"
+  },
+  "status": {
+    "pending": "معلق",
+    "scored": "مُقيَّم",
+    "funded": "ممول",
+    "active": "نشط",
+    "repaid": "مُسدَّد",
+    "settled": "مُسوَّى",
+    "defaulted": "متعثر",
+    "cancelled": "مُلغى"
+  },
+  "common": {
+    "loading": "جاري التحميل...",
+    "error": "حدث خطأ ما",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "confirm": "تأكيد"
+  }
+}
