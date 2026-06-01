@@ -73,7 +73,7 @@ export default function WalletPage() {
       {!loading && wallet && (
         <>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <BalanceCard wallet={wallet} />
+            <BalanceCard wallet={wallet} onRefetch={refetch} />
             <SendForm onSuccess={refetch} />
           </div>
 

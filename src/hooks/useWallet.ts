@@ -19,8 +19,11 @@ export function useWallet() {
   const [hasWallet, setHasWallet] = useState<boolean | null>(null)
   const [creating, setCreating] = useState(false)
 
-  const load = useCallback(async () => {
-    setLoading(true)
+  // `silent` reloads data without flipping the full-page loading skeleton, so
+  // live (SSE-triggered) refreshes update balances in place without unmounting
+  // the cards that are mid-animation.
+  const load = useCallback(async (opts?: { silent?: boolean }) => {
+    if (!opts?.silent) setLoading(true)
     setError(null)
     try {
       const res = await fetch("/api/wallets/balance")
@@ -49,9 +52,11 @@ export function useWallet() {
     } catch {
       setError("Could not load your wallet.")
     } finally {
-      setLoading(false)
+      if (!opts?.silent) setLoading(false)
     }
   }, [])
+
+  const refetch = useCallback(() => load({ silent: true }), [load])
 
   useEffect(() => {
     load()
@@ -85,6 +90,6 @@ export function useWallet() {
     hasWallet,
     creating,
     createWallet,
-    refetch: load,
+    refetch,
   }
 }

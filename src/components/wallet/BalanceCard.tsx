@@ -1,11 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Copy, Check, ExternalLink } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { USDCAmount } from "@/components/shared/USDCAmount"
 import { ARC_FAUCET_URL } from "@/lib/constants"
+import { useRealtimeUpdates } from "@/hooks/useRealtimeUpdates"
+import { cn } from "@/lib/utils"
 import type { WalletData } from "@/hooks/useWallet"
 
 function truncate(address: string): string {
@@ -14,8 +16,34 @@ function truncate(address: string): string {
     : address
 }
 
-export function BalanceCard({ wallet }: { wallet: WalletData }) {
+export function BalanceCard({
+  wallet,
+  onRefetch,
+}: {
+  wallet: WalletData
+  onRefetch?: () => void
+}) {
   const [copied, setCopied] = useState(false)
+  const [flash, setFlash] = useState(false)
+  const [showUpdated, setShowUpdated] = useState(false)
+  const { lastEvent } = useRealtimeUpdates()
+
+  // React to a live balance update for this wallet.
+  useEffect(() => {
+    if (!lastEvent || lastEvent.type !== "balance_update") return
+    if (lastEvent.walletId && lastEvent.walletId !== wallet.circleWalletId) return
+
+    onRefetch?.()
+    setFlash(true)
+    setShowUpdated(true)
+    const flashTimer = setTimeout(() => setFlash(false), 1200)
+    const labelTimer = setTimeout(() => setShowUpdated(false), 3000)
+    return () => {
+      clearTimeout(flashTimer)
+      clearTimeout(labelTimer)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastEvent])
 
   async function copyAddress() {
     await navigator.clipboard.writeText(wallet.address)
@@ -24,10 +52,23 @@ export function BalanceCard({ wallet }: { wallet: WalletData }) {
   }
 
   return (
-    <Card className="border-slate-800 bg-slate-900 text-slate-100">
+    <Card
+      className={cn(
+        "border-slate-800 bg-slate-900 text-slate-100 transition-colors duration-1000",
+        flash && "border-emerald-400/40 bg-emerald-400/10"
+      )}
+    >
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-slate-400">
+        <CardTitle className="flex items-center justify-between text-sm font-medium text-slate-400">
           USDC Balance
+          <span
+            className={cn(
+              "text-xs font-normal text-emerald-400 transition-opacity duration-700",
+              showUpdated ? "opacity-100" : "opacity-0"
+            )}
+          >
+            Updated just now
+          </span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">

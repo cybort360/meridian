@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import crypto from "crypto"
 import { prisma } from "@/lib/prisma"
 import { toPaymentStatus } from "@/lib/circle/payments"
+import { sendEventToUser } from "@/lib/sse"
 import type { CircleTransactionState } from "@/types/circle"
 
 /**
@@ -83,15 +84,37 @@ export async function POST(req: NextRequest) {
     if (circlePaymentId && state) {
       const payment = await prisma.payment.findUnique({
         where: { circlePaymentId },
+        include: { senderWallet: true, receiverWallet: true, invoice: true },
       })
       if (payment) {
+        const status = toPaymentStatus(state)
         await prisma.payment.update({
           where: { circlePaymentId },
-          data: {
-            status: toPaymentStatus(state),
-            txHash: tx?.txHash ?? payment.txHash,
-          },
+          data: { status, txHash: tx?.txHash ?? payment.txHash },
         })
+
+        // On a completed transfer, push live updates to the affected users.
+        // Each wallet owner gets a balance_update (their balance moved); the
+        // client treats this as a cue to re-fetch the authoritative balance.
+        if (status === "CONFIRMED") {
+          for (const wallet of [payment.senderWallet, payment.receiverWallet]) {
+            if (!wallet.userId) continue // skip escrow wallets
+            await sendEventToUser(wallet.userId, {
+              type: "balance_update",
+              walletId: wallet.circleWalletId,
+              newBalance: null, // advisory — the client re-fetches the balance
+            })
+          }
+
+          // A settlement repays the investor — notify them specifically.
+          if (payment.type === "SETTLEMENT" && payment.invoice?.investorId) {
+            await sendEventToUser(payment.invoice.investorId, {
+              type: "payment_received",
+              amount: payment.amountUSDC.toString(),
+              invoiceId: payment.invoiceId,
+            })
+          }
+        }
       }
     }
   } catch (error) {
