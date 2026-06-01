@@ -60,7 +60,7 @@ export function StatsGrid({ stats }: { stats: DashboardStats }) {
         </span>
       ),
       extra: () => (
-        <div className="mt-2 space-y-1.5">
+        <div className="space-y-1.5">
           <p className={`text-xs font-medium ${change.className}`}>
             {change.text}
           </p>
@@ -99,9 +99,10 @@ export function StatsGrid({ stats }: { stats: DashboardStats }) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: i * 0.1 }}
+            className="h-full"
           >
-            <Card className="border-slate-800 bg-slate-900 text-slate-100">
-              <CardContent className="p-5">
+            <Card className="h-full border-slate-800 bg-slate-900 text-slate-100">
+              <CardContent className="flex h-full flex-col p-5">
                 <div className="mb-3 flex items-center justify-between">
                   <span className="text-sm font-medium text-slate-400">
                     {item.label}
@@ -109,14 +110,17 @@ export function StatsGrid({ stats }: { stats: DashboardStats }) {
                   <Icon className="h-4 w-4 text-slate-500" />
                 </div>
                 {item.render()}
-                {item.extra ? (
-                  item.extra()
-                ) : item.trend ? (
-                  <div className="mt-2 flex items-center gap-1 text-xs text-slate-500">
-                    <TrendingUp className="h-3 w-3 text-emerald-400/70" />
-                    <span className="truncate">{item.trend}</span>
-                  </div>
-                ) : null}
+                {/* Footer pinned to the bottom so trend/stat lines align across cards. */}
+                <div className="mt-auto pt-3">
+                  {item.extra ? (
+                    item.extra()
+                  ) : item.trend ? (
+                    <div className="flex items-center gap-1 text-xs text-slate-500">
+                      <TrendingUp className="h-3 w-3 text-emerald-400/70" />
+                      <span className="truncate">{item.trend}</span>
+                    </div>
+                  ) : null}
+                </div>
               </CardContent>
             </Card>
           </motion.div>
