@@ -4,7 +4,17 @@ import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import confetti from "canvas-confetti"
 import { motion, AnimatePresence } from "framer-motion"
-import { Compass, Play, Check, Loader2, ArrowRight } from "lucide-react"
+import {
+  Compass,
+  Play,
+  Check,
+  Loader2,
+  ArrowRight,
+  ArrowUp,
+  Banknote,
+  TrendingUp,
+  ShieldCheck,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { APP_NAME } from "@/lib/constants"
 
@@ -17,6 +27,35 @@ interface StepView {
 }
 
 const STEP_COUNT = 5
+
+// Step 6 ("Credit Passport updated") is a frontend-only flourish that runs after
+// the backend's demo_complete — it animates a credit-score counter rather than
+// reflecting a new SSE event.
+const PASSPORT_FROM = 540
+const PASSPORT_TO = 556
+
+// Curated outcome figures for the completion summary. These match the demo's
+// scripted path ($8,500 invoice · 82% advance · 2% yield) and the +16 score gain.
+const OUTCOMES = [
+  {
+    icon: Banknote,
+    label: "Capital disbursed",
+    value: "$6,970",
+    detail: "USDC to SME",
+  },
+  {
+    icon: TrendingUp,
+    label: "Investor yield",
+    value: "$139.40",
+    detail: "USDC returned",
+  },
+  {
+    icon: ShieldCheck,
+    label: "Reputation built",
+    value: "+16",
+    detail: "credit points",
+  },
+] as const
 
 function usd(baseUnits: unknown): string {
   try {
@@ -81,10 +120,17 @@ export default function DemoPage() {
   const [done, setDone] = useState(false)
   const [durationMs, setDurationMs] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
+  // Step 6 (credit passport) state — driven locally, not over SSE.
+  const [passport, setPassport] = useState<StepStatus>("pending")
+  const [score, setScore] = useState(PASSPORT_FROM)
   const esRef = useRef<EventSource | null>(null)
+  const scoreTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
-    return () => esRef.current?.close()
+    return () => {
+      esRef.current?.close()
+      if (scoreTimerRef.current) clearInterval(scoreTimerRef.current)
+    }
   }, [])
 
   function fireConfetti() {
@@ -122,12 +168,41 @@ export default function DemoPage() {
     })
   }
 
+  // Step 6: animate the credit passport once the lifecycle settles. The checkmark
+  // lands first, then the score counts up from 540 to 556 (one point / 50ms);
+  // completion (cards + confetti) is held until the counter finishes.
+  function runPassportStep() {
+    setPassport("active")
+    setScore(PASSPORT_FROM)
+    window.setTimeout(() => {
+      setPassport("complete")
+      let current = PASSPORT_FROM
+      scoreTimerRef.current = setInterval(() => {
+        current += 1
+        setScore(current)
+        if (current >= PASSPORT_TO) {
+          if (scoreTimerRef.current) clearInterval(scoreTimerRef.current)
+          scoreTimerRef.current = null
+          setRunning(false)
+          setDone(true)
+          fireConfetti()
+        }
+      }, 50)
+    }, 700)
+  }
+
   function start() {
+    if (scoreTimerRef.current) {
+      clearInterval(scoreTimerRef.current)
+      scoreTimerRef.current = null
+    }
     setSteps(() => {
       const s = freshSteps()
       s[0] = { status: "active", data: null }
       return s
     })
+    setPassport("pending")
+    setScore(PASSPORT_FROM)
     setDone(false)
     setDurationMs(null)
     setError(null)
@@ -177,10 +252,9 @@ export default function DemoPage() {
       }
       if (evt.type === "demo_complete") {
         setDurationMs(evt.durationMs ?? null)
-        setRunning(false)
-        setDone(true)
         es.close()
-        fireConfetti()
+        // Hand off to the frontend-only passport step; it finishes the run.
+        runPassportStep()
       }
     }
 
@@ -275,6 +349,66 @@ export default function DemoPage() {
               </p>
             </motion.li>
           ))}
+
+          {/* Step 6 — credit passport (frontend-animated). */}
+          <motion.li
+            key="passport"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: STEP_COUNT * 0.05 }}
+            className={`flex items-start gap-4 rounded-xl border px-4 py-4 transition-colors ${
+              passport === "complete"
+                ? "border-emerald-400/30 bg-emerald-400/5"
+                : passport === "active"
+                  ? "border-slate-600 bg-slate-900"
+                  : "border-slate-800 bg-slate-900/50"
+            }`}
+          >
+            <span
+              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
+                passport === "complete"
+                  ? "bg-emerald-400/15 text-emerald-400"
+                  : "bg-slate-800 text-slate-400"
+              }`}
+            >
+              {passport === "complete" ? (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                >
+                  <Check className="h-4 w-4" />
+                </motion.span>
+              ) : passport === "active" ? (
+                <Loader2 className="h-4 w-4 animate-spin text-emerald-400" />
+              ) : (
+                <span>⑥</span>
+              )}
+            </span>
+            <div className="pt-1">
+              <p
+                className={`text-sm ${
+                  passport === "pending" ? "text-slate-500" : "text-slate-100"
+                }`}
+              >
+                Credit Passport updated
+              </p>
+              {passport === "complete" && (
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-slate-400"
+                >
+                  <span>Score {PASSPORT_FROM} →</span>
+                  <span className="inline-flex items-center gap-0.5 font-mono font-semibold tabular-nums text-emerald-400">
+                    <ArrowUp className="h-3 w-3" />
+                    {score}
+                  </span>
+                  <span>· +1 verified trade event · Repayment reliability: 100%</span>
+                </motion.p>
+              )}
+            </div>
+          </motion.li>
         </ol>
       )}
 
@@ -284,14 +418,43 @@ export default function DemoPage() {
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-10 flex flex-col items-center gap-4 text-center"
+            className="mt-10 flex w-full max-w-xl flex-col items-center gap-5 text-center"
           >
-            <p className="text-lg font-semibold text-emerald-400">
-              Full lifecycle complete
-              {durationMs !== null
-                ? ` in ${(durationMs / 1000).toFixed(1)} seconds`
-                : ""}
-            </p>
+            <div>
+              <p className="text-lg font-semibold text-emerald-400">
+                Settlement complete. Credit reputation strengthened. The network
+                learned.
+              </p>
+              {durationMs !== null && (
+                <p className="mt-1 text-xs text-slate-500">
+                  {(durationMs / 1000).toFixed(1)}s end-to-end
+                </p>
+              )}
+            </div>
+
+            <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-3">
+              {OUTCOMES.map((o) => {
+                const Icon = o.icon
+                return (
+                  <div
+                    key={o.label}
+                    className="rounded-xl border border-slate-800 bg-slate-900 px-4 py-4 text-left"
+                  >
+                    <div className="flex items-center gap-2 text-slate-400">
+                      <Icon className="h-4 w-4 text-emerald-400" />
+                      <span className="text-xs font-medium uppercase tracking-wide">
+                        {o.label}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-xl font-semibold text-slate-100">
+                      {o.value}
+                    </p>
+                    <p className="text-xs text-slate-500">{o.detail}</p>
+                  </div>
+                )
+              })}
+            </div>
+
             <div className="flex gap-3">
               <Link href="/dashboard">
                 <Button className="bg-emerald-500 text-slate-950 hover:bg-emerald-400">
