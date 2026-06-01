@@ -15,6 +15,7 @@ model User {
   role          UserRole  @default(SME)
   companyName   String?
   country       String    @default("UAE")
+  hasSeenOnboarding Boolean @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

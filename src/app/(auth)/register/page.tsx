@@ -79,7 +79,8 @@ export default function RegisterPage() {
         return
       }
 
-      router.push("/dashboard")
+      // New users see the one-time onboarding flywheel before the dashboard.
+      router.push("/onboarding")
       router.refresh()
     } catch {
       setError("Could not create your account. Please try again.")
