@@ -34,6 +34,14 @@ export default function LandingPage() {
           </span>
         </div>
         <nav className="flex items-center gap-3">
+          <a href="/demo" target="_blank" rel="noopener noreferrer">
+            <Button
+              variant="ghost"
+              className="text-emerald-400 hover:text-emerald-300"
+            >
+              Demo Mode
+            </Button>
+          </a>
           <Link href="/login">
             <Button
               variant="ghost"
