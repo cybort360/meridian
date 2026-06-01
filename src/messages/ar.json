@@ -7,7 +7,7 @@
     "passport": "جواز الائتمان"
   },
   "dashboard": {
-    "title": "مركز التحكم",
+    "title": "مركز التمويل",
     "totalFinanced": "إجمالي التمويل",
     "activeInvoices": "الفواتير النشطة",
     "creditScore": "درجة الائتمان",

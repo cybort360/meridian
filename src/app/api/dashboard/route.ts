@@ -44,6 +44,23 @@ export async function GET() {
     const onTimeRate =
       resolved > 0 ? Math.round((settled / resolved) * 100) : null
 
+    // Net credit-score movement over the last 30 days, from CreditEvents.
+    const since = new Date(Date.now() - 30 * 86_400_000)
+    const recentEvents = await prisma.creditEvent.findMany({
+      where: { userId, createdAt: { gte: since } },
+      select: { scoreChange: true },
+    })
+    const creditScoreChange30d = recentEvents.reduce(
+      (sum, e) => sum + e.scoreChange,
+      0
+    )
+
+    // Repayment rate: settled vs. (settled + defaulted); 100% when no defaults.
+    const repaymentRate =
+      defaulted === 0
+        ? 100
+        : Math.round((settled / (settled + defaulted)) * 100)
+
     // Payments touching this user's wallet, for activity + flow.
     const wallet = await prisma.wallet.findUnique({ where: { userId } })
     let recentActivity: Array<{
@@ -111,6 +128,9 @@ export async function GET() {
           activeInvoices,
           creditScore,
           onTimeRate,
+          creditScoreChange30d,
+          settledInvoices: settled,
+          repaymentRate,
         },
         recentActivity,
         flow,

@@ -49,36 +49,43 @@ export default function DashboardPage() {
         <LiveClock />
       </div>
 
-      <div className="flex flex-wrap gap-3">
-        <Button
-          asChild
-          className="bg-emerald-500 text-slate-950 hover:bg-emerald-400"
-        >
-          <Link href="/invoices">
-            <FilePlus2 className="mr-2 h-4 w-4" />
-            New Invoice
-          </Link>
-        </Button>
-        <Button
-          asChild
-          variant="outline"
-          className="border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800 hover:text-slate-100"
-        >
-          <Link href="/marketplace">
-            <Store className="mr-2 h-4 w-4" />
-            View Marketplace
-          </Link>
-        </Button>
-        <Button
-          asChild
-          variant="outline"
-          className="border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800 hover:text-slate-100"
-        >
-          <Link href="/passport">
-            <IdCard className="mr-2 h-4 w-4" />
-            View Passport
-          </Link>
-        </Button>
+      {/* Three pillars — visible before data loads. */}
+      <div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <Button
+            asChild
+            variant="outline"
+            className="w-full justify-center border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800 hover:text-slate-100"
+          >
+            <Link href="/invoices">
+              <FilePlus2 className="mr-2 h-4 w-4" />
+              New Invoice
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            className="w-full justify-center border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800 hover:text-slate-100"
+          >
+            <Link href="/marketplace">
+              <Store className="mr-2 h-4 w-4" />
+              Browse Marketplace
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            className="w-full justify-center border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800 hover:text-slate-100"
+          >
+            <Link href="/passport">
+              <IdCard className="mr-2 h-4 w-4" />
+              My Credit Passport
+            </Link>
+          </Button>
+        </div>
+        <p className="mt-2 text-xs text-slate-500">
+          Submit invoices · access liquidity · build reputation
+        </p>
       </div>
 
       {loading && <DashboardSkeleton />}

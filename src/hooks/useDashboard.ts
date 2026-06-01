@@ -7,6 +7,9 @@ export interface DashboardStats {
   activeInvoices: number
   creditScore: number
   onTimeRate: number | null
+  creditScoreChange30d: number
+  settledInvoices: number
+  repaymentRate: number
 }
 
 export interface ActivityItem {

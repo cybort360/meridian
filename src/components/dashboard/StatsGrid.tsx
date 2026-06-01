@@ -1,11 +1,11 @@
 "use client"
 
+import Link from "next/link"
 import { motion } from "framer-motion"
 import { TrendingUp, FileClock, Gauge, CheckCircle2 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { USDCAmount } from "@/components/shared/USDCAmount"
-import { labelForScore } from "@/lib/utils/creditScore"
 import { useLanguage } from "@/hooks/useLanguage"
 import type { DashboardStats } from "@/hooks/useDashboard"
 
@@ -13,11 +13,25 @@ interface StatDef {
   label: string
   icon: LucideIcon
   render: () => React.ReactNode
-  trend: string
+  trend?: string
+  // When present, replaces the default trend line (used by the Credit Score card).
+  extra?: () => React.ReactNode
+}
+
+function creditChangeLabel(change: number): { text: string; className: string } {
+  if (change > 0) {
+    return { text: `↑ +${change} this month`, className: "text-emerald-400" }
+  }
+  if (change < 0) {
+    return { text: `↓ ${change} this month`, className: "text-red-400" }
+  }
+  return { text: "Stable", className: "text-slate-400" }
 }
 
 export function StatsGrid({ stats }: { stats: DashboardStats }) {
   const { t } = useLanguage()
+  const change = creditChangeLabel(stats.creditScoreChange30d)
+
   const items: StatDef[] = [
     {
       label: t("dashboard.totalFinanced"),
@@ -40,11 +54,27 @@ export function StatsGrid({ stats }: { stats: DashboardStats }) {
     {
       label: t("dashboard.creditScore"),
       icon: Gauge,
-      trend: `${labelForScore(stats.creditScore)} · 300–850`,
       render: () => (
         <span className="font-mono text-2xl font-semibold text-emerald-400">
           {stats.creditScore}
         </span>
+      ),
+      extra: () => (
+        <div className="mt-2 space-y-1.5">
+          <p className={`text-xs font-medium ${change.className}`}>
+            {change.text}
+          </p>
+          <p className="text-xs text-slate-500">
+            ✓ {stats.settledInvoices} settled invoices &nbsp;·&nbsp;{" "}
+            {stats.repaymentRate}% repayment rate
+          </p>
+          <Link
+            href="/passport"
+            className="inline-block text-xs text-emerald-400 hover:underline"
+          >
+            View full passport →
+          </Link>
+        </div>
       ),
     },
     {
@@ -79,10 +109,14 @@ export function StatsGrid({ stats }: { stats: DashboardStats }) {
                   <Icon className="h-4 w-4 text-slate-500" />
                 </div>
                 {item.render()}
-                <div className="mt-2 flex items-center gap-1 text-xs text-slate-500">
-                  <TrendingUp className="h-3 w-3 text-emerald-400/70" />
-                  <span className="truncate">{item.trend}</span>
-                </div>
+                {item.extra ? (
+                  item.extra()
+                ) : item.trend ? (
+                  <div className="mt-2 flex items-center gap-1 text-xs text-slate-500">
+                    <TrendingUp className="h-3 w-3 text-emerald-400/70" />
+                    <span className="truncate">{item.trend}</span>
+                  </div>
+                ) : null}
               </CardContent>
             </Card>
           </motion.div>

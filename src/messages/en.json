@@ -7,7 +7,7 @@
     "passport": "Credit Passport"
   },
   "dashboard": {
-    "title": "Command Center",
+    "title": "Finance Hub",
     "totalFinanced": "Total Financed",
     "activeInvoices": "Active Invoices",
     "creditScore": "Credit Score",
