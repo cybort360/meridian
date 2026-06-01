@@ -34,10 +34,15 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id
         token.role = user.role
+      }
+      // Reflect profile edits (e.g. name) into the JWT when the client calls
+      // useSession().update(...), so the TopBar updates without a re-login.
+      if (trigger === "update" && typeof session?.name === "string") {
+        token.name = session.name
       }
       return token
     },

@@ -12,6 +12,14 @@ export const registerSchema = z.object({
 
 export type RegisterInput = z.infer<typeof registerSchema>
 
+export const updateProfileSchema = z.object({
+  name: z.string().min(1, "Name is required").max(120),
+  companyName: z.string().min(1, "Company name is required").max(160),
+  country: z.string().min(1, "Country is required").max(80),
+})
+
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>
+
 export const loginSchema = z.object({
   email: z.string().email("Enter a valid email address"),
   password: z.string().min(1, "Password is required"),
