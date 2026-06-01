@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto"
 import { getCircleClient } from "./client"
-import { ARC_USDC_TOKEN_ADDRESS } from "@/lib/constants"
+import { ARC_USDC_TOKEN_ADDRESS, USDC_SYMBOL } from "@/lib/constants"
 import { baseUnitsToDecimalString } from "@/lib/utils/usdc"
 import type {
   TransferParams,
@@ -30,6 +30,25 @@ export function toPaymentStatus(
   return "PENDING"
 }
 
+// Resolves Circle's tokenId for USDC held by a wallet. createTransaction needs
+// either a tokenId or tokenAddress + blockchain; the SDK's types collide on the
+// `blockchain` key when walletId is used, so we identify USDC by its tokenId.
+async function resolveUsdcTokenId(circleWalletId: string): Promise<string> {
+  const client = getCircleClient()
+  const res = await client.getWalletTokenBalance({ id: circleWalletId })
+  const balances = res.data?.tokenBalances ?? []
+  const usdc = balances.find(
+    (b) =>
+      b.token.symbol === USDC_SYMBOL ||
+      b.token.tokenAddress?.toLowerCase() ===
+        ARC_USDC_TOKEN_ADDRESS.toLowerCase()
+  )
+  if (!usdc?.token?.id) {
+    throw new Error("No USDC balance found in this wallet on Arc to transfer.")
+  }
+  return usdc.token.id
+}
+
 // Initiates a USDC transfer from a Circle wallet to a destination address.
 // Returns the transaction id and its initial state; settlement is confirmed
 // asynchronously via webhook or by polling with pollTransaction().
@@ -37,10 +56,11 @@ export async function transferUSDC(
   params: TransferParams
 ): Promise<TransferResult> {
   const client = getCircleClient()
+  const tokenId = await resolveUsdcTokenId(params.fromCircleWalletId)
 
   const res = await client.createTransaction({
     walletId: params.fromCircleWalletId,
-    tokenAddress: ARC_USDC_TOKEN_ADDRESS,
+    tokenId,
     destinationAddress: params.toAddress,
     amount: [baseUnitsToDecimalString(params.amountBaseUnits)],
     fee: {
