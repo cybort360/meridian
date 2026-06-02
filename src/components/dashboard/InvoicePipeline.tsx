@@ -45,7 +45,8 @@ export function InvoicePipeline({ invoices }: { invoices: PipelineInvoice[] }) {
             description="New invoices will appear here as they're created."
           />
         ) : (
-          <table className="w-full text-sm">
+          <div className="-mx-2 overflow-x-auto px-2">
+          <table className="w-full min-w-[28rem] text-sm">
             <thead>
               <tr className="text-left text-xs uppercase tracking-wide text-slate-500">
                 <th className="pb-2 font-medium">Invoice</th>
@@ -86,6 +87,7 @@ export function InvoicePipeline({ invoices }: { invoices: PipelineInvoice[] }) {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </CardContent>
     </Card>

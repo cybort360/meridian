@@ -8,6 +8,10 @@ import { USDCAmount } from "@/components/shared/USDCAmount"
 import { cn } from "@/lib/utils"
 import type { DashboardStats } from "@/hooks/useDashboard"
 
+// Big metric number: full size when a card is wide (1–2 up), steps down at the
+// cramped 4-up `lg` width, then back up once `xl` gives the cards room again.
+const NUM = "text-3xl lg:text-2xl xl:text-3xl"
+
 function Trend({ value, suffix }: { value: number; suffix: string }) {
   const up = value >= 0
   return (
@@ -22,7 +26,6 @@ function Trend({ value, suffix }: { value: number; suffix: string }) {
 interface CardDef {
   label: string
   icon: LucideIcon
-  accent?: boolean
   value: React.ReactNode
   sub: React.ReactNode
 }
@@ -32,12 +35,12 @@ export function MetricCards({ stats }: { stats: DashboardStats }) {
     {
       label: "Total Financed",
       icon: TrendingUp,
-      accent: true,
       value: (
         <USDCAmount
           baseUnits={BigInt(stats.totalFinanced)}
           size="xl"
           showSymbol={false}
+          className={NUM}
         />
       ),
       sub: (
@@ -55,6 +58,7 @@ export function MetricCards({ stats }: { stats: DashboardStats }) {
           baseUnits={BigInt(stats.capitalDeployed)}
           size="xl"
           showSymbol={false}
+          className={NUM}
         />
       ),
       sub: <>Across {stats.activeInvoices} active invoices</>,
@@ -63,10 +67,17 @@ export function MetricCards({ stats }: { stats: DashboardStats }) {
       label: "Avg Settlement",
       icon: Clock,
       value: (
-        <span className="font-mono text-3xl font-semibold text-slate-100">
-          {stats.avgSettlementDays === null
-            ? "—"
-            : `${stats.avgSettlementDays.toFixed(1)} days`}
+        <span className={cn("font-mono font-semibold text-slate-100", NUM)}>
+          {stats.avgSettlementDays === null ? (
+            "—"
+          ) : (
+            <>
+              {stats.avgSettlementDays.toFixed(1)}
+              <span className="ml-1 text-base font-normal text-slate-400">
+                days
+              </span>
+            </>
+          )}
         </span>
       ),
       sub: <>Industry avg: 87 days</>,
@@ -75,7 +86,7 @@ export function MetricCards({ stats }: { stats: DashboardStats }) {
       label: "On-Time Rate",
       icon: ShieldCheck,
       value: (
-        <span className="font-mono text-3xl font-semibold text-slate-100">
+        <span className={cn("font-mono font-semibold text-slate-100", NUM)}>
           {stats.onTimeRate === null ? "—" : `${stats.onTimeRate}%`}
         </span>
       ),
@@ -100,25 +111,13 @@ export function MetricCards({ stats }: { stats: DashboardStats }) {
             transition={{ duration: 0.35, delay: i * 0.08, ease: "easeOut" }}
             className="h-full"
           >
-            <Card
-              className={cn(
-                "h-full border text-slate-100",
-                card.accent
-                  ? "border-slate-800 border-l-2 border-l-emerald-500 bg-slate-950"
-                  : "border-slate-800 bg-slate-900"
-              )}
-            >
+            <Card className="h-full border border-slate-800 bg-slate-900 text-slate-100">
               <CardContent className="flex h-full flex-col p-5">
-                <div className="mb-4 flex items-center justify-between">
+                <div className="mb-4 flex items-center justify-between gap-2">
                   <span className="text-sm font-medium text-slate-400">
                     {card.label}
                   </span>
-                  <Icon
-                    className={cn(
-                      "h-4 w-4",
-                      card.accent ? "text-emerald-400" : "text-slate-500"
-                    )}
-                  />
+                  <Icon className="h-4 w-4 shrink-0 text-slate-500" />
                 </div>
                 <div className="leading-none">{card.value}</div>
                 <p className="mt-auto pt-3 text-xs text-slate-500">{card.sub}</p>
