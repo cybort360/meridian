@@ -45,3 +45,6 @@ next-env.d.ts
 
 # KYC document uploads (local dev storage)
 /public/uploads
+
+# KYC documents — private, server-only storage (never served statically)
+/private-uploads

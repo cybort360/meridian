@@ -1,8 +1,30 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
+import { access } from "fs/promises"
+import path from "path"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { kycSubmissionSchema } from "@/lib/utils/validation"
+import {
+  KYC_DIR,
+  isValidKey,
+  keyBelongsTo,
+  keyFromUrl,
+} from "@/lib/kycStorage"
+
+// Confirms a document URL points to a file the current user actually uploaded,
+// preventing one user from attaching another user's documents to their submission.
+async function ownsDocument(url: string | undefined, userId: string): Promise<boolean> {
+  if (!url) return false
+  const key = keyFromUrl(url)
+  if (!key || !isValidKey(key) || !keyBelongsTo(key, userId)) return false
+  try {
+    await access(path.join(KYC_DIR, path.basename(key)))
+    return true
+  } catch {
+    return false
+  }
+}
 
 // POST /api/kyc/submit — SME submits business details + document URLs.
 export async function POST(req: NextRequest) {
@@ -22,6 +44,17 @@ export async function POST(req: NextRequest) {
     }
     const d = parsed.data
     const userId = session.user.id
+
+    // Verify document ownership — reject references to files this user doesn't own.
+    const tradeOk = await ownsDocument(d.tradeLicenseDocUrl, userId)
+    const ownerOk = await ownsDocument(d.ownerIdDocUrl, userId)
+    const proofOk = !d.proofOfAddressUrl || (await ownsDocument(d.proofOfAddressUrl, userId))
+    if (!tradeOk || !ownerOk || !proofOk) {
+      return NextResponse.json(
+        { error: "Invalid or unauthorized document reference." },
+        { status: 400 }
+      )
+    }
 
     const data = {
       legalBusinessName: d.legalBusinessName,
