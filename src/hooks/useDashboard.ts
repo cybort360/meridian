@@ -3,13 +3,46 @@
 import { useCallback, useEffect, useState } from "react"
 
 export interface DashboardStats {
-  totalVolumeFinanced: string
+  totalFinanced: string // base units
+  totalFinancedChangePct: number
+  capitalDeployed: string // base units
   activeInvoices: number
-  creditScore: number
+  avgSettlementDays: number | null
   onTimeRate: number | null
-  creditScoreChange30d: number
-  settledInvoices: number
-  repaymentRate: number
+  onTimePointsThisMonth: number
+}
+
+export interface PillStat {
+  count: number
+  amount: string // base units
+}
+
+export interface SecondaryStats {
+  paid: PillStat & { changePct: number }
+  due: PillStat
+  overdue: PillStat & { thisWeek: number }
+}
+
+export interface MonthlyFlowPoint {
+  month: string
+  financed: number // USD
+  repaid: number // USD
+}
+
+export interface PipelineInvoice {
+  id: string
+  invoiceNumber: string
+  buyerName: string
+  amountUSDC: string // base units
+  status: string
+  dueDate: string // ISO
+}
+
+export interface PortfolioRisk {
+  avgScore: number | null
+  low: number
+  medium: number
+  high: number
 }
 
 export interface ActivityItem {
@@ -22,15 +55,13 @@ export interface ActivityItem {
   createdAt: string
 }
 
-export interface FlowPoint {
-  date: string
-  amount: string
-}
-
 export interface DashboardData {
   stats: DashboardStats
+  secondary: SecondaryStats
+  monthlyFlow: MonthlyFlowPoint[]
+  pipeline: PipelineInvoice[]
+  risk: PortfolioRisk
   recentActivity: ActivityItem[]
-  flow: FlowPoint[]
 }
 
 export function useDashboard() {
