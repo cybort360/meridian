@@ -37,7 +37,8 @@ export async function GET(req: NextRequest) {
 
     const where: Prisma.InvoiceWhereInput =
       scope === "market"
-        ? { status: "SCORED" }
+        ? // Only list invoices from KYC-approved SMEs in the marketplace.
+          { status: "SCORED", sme: { kycStatus: "APPROVED" } }
         : session.user.role === "INVESTOR"
           ? { investorId: session.user.id }
           : { smeId: session.user.id }
@@ -72,6 +73,21 @@ export async function POST(req: NextRequest) {
     if (session.user.role !== "SME") {
       return NextResponse.json(
         { error: "Only SME accounts can create invoices." },
+        { status: 403 }
+      )
+    }
+
+    // Gate on business verification.
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { kycStatus: true },
+    })
+    if (user?.kycStatus !== "APPROVED") {
+      return NextResponse.json(
+        {
+          error:
+            "Business verification required before creating invoices. Please complete KYC.",
+        },
         { status: 403 }
       )
     }

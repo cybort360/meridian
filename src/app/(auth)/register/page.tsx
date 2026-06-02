@@ -124,8 +124,8 @@ export default function RegisterPage() {
         if (!signInRes || signInRes.error) {
           router.push("/login")
         } else {
-          // New users see the one-time onboarding flywheel first.
-          router.push("/onboarding")
+          // SMEs onboard via business verification; investors skip it.
+          router.push(parsed.data.role === "INVESTOR" ? "/dashboard" : "/kyc")
           router.refresh()
         }
       }, 1500)

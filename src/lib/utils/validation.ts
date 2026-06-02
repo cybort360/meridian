@@ -27,6 +27,29 @@ export const loginSchema = z.object({
 
 export type LoginInput = z.infer<typeof loginSchema>
 
+export const kycSubmissionSchema = z.object({
+  legalBusinessName: z.string().min(1, "Legal business name is required"),
+  tradeLicenseNumber: z.string().min(1, "Trade license number is required"),
+  commercialRegNumber: z
+    .string()
+    .min(1, "Commercial registration number is required"),
+  businessAddress: z.string().min(1, "Business address is required"),
+  city: z.string().min(1, "City is required"),
+  country: z.string().min(1).default("UAE"),
+  industry: z.string().min(1, "Industry is required"),
+  phoneNumber: z.string().min(1, "Business phone is required"),
+  websiteUrl: z
+    .string()
+    .url("Enter a valid URL")
+    .optional()
+    .or(z.literal("")),
+  tradeLicenseDocUrl: z.string().min(1, "Trade license document is required"),
+  ownerIdDocUrl: z.string().min(1, "Owner ID document is required"),
+  proofOfAddressUrl: z.string().optional().or(z.literal("")),
+})
+
+export type KycSubmissionInput = z.infer<typeof kycSubmissionSchema>
+
 export const transferSchema = z.object({
   toAddress: z
     .string()

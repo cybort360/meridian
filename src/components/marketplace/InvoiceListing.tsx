@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { format } from "date-fns"
+import { ShieldCheck } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { USDCAmount } from "@/components/shared/USDCAmount"
@@ -29,9 +30,17 @@ export function InvoiceListing({
             <p className="truncate font-medium text-slate-100">
               {invoice.title}
             </p>
-            <p className="truncate text-sm text-slate-400">
-              {invoice.sme?.companyName ?? invoice.sme?.name ?? "SME"}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="truncate text-sm text-slate-400">
+                {invoice.sme?.companyName ?? invoice.sme?.name ?? "SME"}
+              </p>
+              {invoice.sme?.kycStatus === "APPROVED" && (
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-teal-400/10 px-2 py-0.5 text-xs font-medium text-teal-300 ring-1 ring-teal-400/20">
+                  <ShieldCheck className="h-3 w-3" />
+                  Verified
+                </span>
+              )}
+            </div>
           </div>
           <RiskScoreBadge score={invoice.riskScore} label={invoice.riskLabel} />
         </div>

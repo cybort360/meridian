@@ -5,7 +5,7 @@ import { scoreInvoiceRisk, type RiskScoringInput } from "@/lib/ai/riskScoring"
 import type { InvoiceDTO } from "@/types/invoiceDto"
 import type { InvoiceStatus, RiskLabel } from "@/types"
 
-type SmeRelation = Pick<User, "id" | "name" | "companyName">
+type SmeRelation = Pick<User, "id" | "name" | "companyName" | "kycStatus">
 type InvestorRelation = Pick<User, "id" | "name">
 
 export type InvoiceWithRelations = Invoice & {
@@ -32,7 +32,12 @@ export function serializeInvoice(inv: InvoiceWithRelations): InvoiceDTO {
     buyerSignedAt: inv.buyerSignedAt ? inv.buyerSignedAt.toISOString() : null,
     createdAt: inv.createdAt.toISOString(),
     sme: inv.sme
-      ? { id: inv.sme.id, name: inv.sme.name, companyName: inv.sme.companyName }
+      ? {
+          id: inv.sme.id,
+          name: inv.sme.name,
+          companyName: inv.sme.companyName,
+          kycStatus: inv.sme.kycStatus,
+        }
       : undefined,
     investor: inv.investor
       ? { id: inv.investor.id, name: inv.investor.name }

@@ -18,6 +18,11 @@ export interface InvoiceDTO {
   feeRate: number
   buyerSignedAt: string | null
   createdAt: string // ISO
-  sme?: { id: string; name: string; companyName: string | null }
+  sme?: {
+    id: string
+    name: string
+    companyName: string | null
+    kycStatus?: "NOT_SUBMITTED" | "PENDING_REVIEW" | "APPROVED" | "REJECTED"
+  }
   investor?: { id: string; name: string } | null
 }

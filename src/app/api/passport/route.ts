@@ -46,8 +46,23 @@ export async function GET() {
 
     const wallet = await prisma.wallet.findUnique({ where: { userId } })
 
+    const account = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { kycStatus: true, kycSubmission: true },
+    })
+    const sub = account?.kycSubmission
+    const kyc = {
+      status: account?.kycStatus ?? "NOT_SUBMITTED",
+      businessName: sub?.legalBusinessName ?? null,
+      // Mask the trade license: first 4 chars + ****
+      tradeLicenseMasked: sub?.tradeLicenseNumber
+        ? `${sub.tradeLicenseNumber.slice(0, 4)}****`
+        : null,
+    }
+
     return NextResponse.json({
       data: {
+        kyc,
         score: credit.score,
         label: credit.label,
         totalEvents: credit.totalEvents,

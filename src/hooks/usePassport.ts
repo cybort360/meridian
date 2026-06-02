@@ -25,6 +25,11 @@ export interface PassportData {
   address: string | null
   blockchain: string
   invoices: PassportInvoice[]
+  kyc: {
+    status: "NOT_SUBMITTED" | "PENDING_REVIEW" | "APPROVED" | "REJECTED"
+    businessName: string | null
+    tradeLicenseMasked: string | null
+  }
 }
 
 export function usePassport() {

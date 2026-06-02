@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { FileText, Copy, Check, ExternalLink } from "lucide-react"
+import { FileText, Copy, Check, ExternalLink, ShieldCheck } from "lucide-react"
 import { usePassport } from "@/hooks/usePassport"
 import { CreditScore } from "@/components/passport/CreditScore"
 import { HistoryTimeline } from "@/components/passport/HistoryTimeline"
@@ -118,6 +118,25 @@ export default function PassportPage() {
 
       {!loading && passport && (
         <>
+          {passport.kyc.status === "APPROVED" && (
+            <div className="flex flex-wrap items-center gap-3 rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-5 py-4">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-400/15 text-emerald-400">
+                <ShieldCheck className="h-5 w-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="font-semibold text-emerald-300">
+                  ✓ Verified Business · UAE Trade License Confirmed
+                </p>
+                <p className="truncate text-sm text-slate-400">
+                  {passport.kyc.businessName ?? "—"}
+                  {passport.kyc.tradeLicenseMasked
+                    ? ` · License ${passport.kyc.tradeLicenseMasked}`
+                    : ""}
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
             <Card className="border-slate-800 bg-slate-900 text-slate-100">
               <CardHeader className="pb-2">

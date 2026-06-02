@@ -16,6 +16,7 @@ model User {
   companyName   String?
   country       String    @default("UAE")
   hasSeenOnboarding Boolean @default(false)
+  kycStatus     KycStatus @default(NOT_SUBMITTED)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -23,12 +24,48 @@ model User {
   invoices      Invoice[] @relation("SMEInvoices")
   funded        Invoice[] @relation("InvestorInvoices")
   sessions      Session[]
+  kycSubmission KycSubmission?
 }
 
 enum UserRole {
   SME
   INVESTOR
   ADMIN
+}
+
+enum KycStatus {
+  NOT_SUBMITTED
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+}
+
+model KycSubmission {
+  id                    String    @id @default(cuid())
+  userId                String    @unique
+
+  // Business details
+  legalBusinessName     String
+  tradeLicenseNumber    String
+  commercialRegNumber   String
+  businessAddress       String
+  city                  String
+  country               String    @default("UAE")
+  industry              String
+  websiteUrl            String?
+  phoneNumber           String
+
+  // Document paths (stored as file paths or URLs)
+  tradeLicenseDocUrl    String
+  ownerIdDocUrl         String
+  proofOfAddressUrl     String?
+
+  // Review
+  reviewedAt            DateTime?
+  reviewNotes           String?
+  submittedAt           DateTime  @default(now())
+
+  user                  User      @relation(fields: [userId], references: [id])
 }
 
 model Session {
