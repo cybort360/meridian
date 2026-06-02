@@ -179,6 +179,11 @@ export function InvoiceForm({
           type="file"
           accept="application/pdf,.pdf"
           className="hidden"
+          // The input is a child of the clickable dropzone. Calling .click()
+          // dispatches a synthetic click that bubbles back to the div's
+          // onClick, which calls .click() again — a re-entrant loop Chrome
+          // blocks (the file picker silently never opens). Stop the bubble.
+          onClick={(e) => e.stopPropagation()}
           onChange={(e) => {
             const file = e.target.files?.[0]
             if (file) handleFile(file)
