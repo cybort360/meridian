@@ -39,6 +39,18 @@ async function main() {
     },
   })
 
+  const admin = await prisma.user.upsert({
+    where: { email: "admin@meridian.test" },
+    update: { role: "ADMIN" },
+    create: {
+      email: "admin@meridian.test",
+      name: "Meridian Admin",
+      passwordHash,
+      role: "ADMIN",
+      country: "UAE",
+    },
+  })
+
   // Idempotent reseed: clear this SME's demo invoices + credit history.
   await prisma.invoice.deleteMany({ where: { smeId: sme.id } })
   await prisma.creditEvent.deleteMany({ where: { userId: sme.id } })
@@ -122,6 +134,7 @@ async function main() {
   console.log("Seeded demo data:")
   console.log(`  SME      → ${sme.email} (Gulf Cargo LLC, password: password123)`)
   console.log(`  Investor → ${investor.email} (password: password123)`)
+  console.log(`  Admin    → ${admin.email} (password: password123)`)
   console.log("  Invoices → 3 (SCORED, ACTIVE, SETTLED) + 1 credit event")
 }
 
