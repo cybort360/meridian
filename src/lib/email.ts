@@ -16,7 +16,12 @@ function isSet(v: string | undefined): v is string {
 // configured), else logs to the console. Never throws — email failures must
 // not break invoice creation.
 export async function sendEmail({ to, subject, text }: SendEmailInput): Promise<void> {
-  const from = process.env.EMAIL_FROM || "Meridian <onboarding@resend.dev>"
+  // A custom From only counts if it's a real address (not the Resend demo one).
+  const configuredFrom =
+    isSet(process.env.EMAIL_FROM) &&
+    !process.env.EMAIL_FROM!.includes("resend.dev")
+      ? process.env.EMAIL_FROM!
+      : null
 
   try {
     const resendKey = process.env.RESEND_API_KEY
@@ -27,7 +32,12 @@ export async function sendEmail({ to, subject, text }: SendEmailInput): Promise<
           Authorization: `Bearer ${resendKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ from, to, subject, text }),
+        body: JSON.stringify({
+          from: configuredFrom ?? "Meridian <onboarding@resend.dev>",
+          to,
+          subject,
+          text,
+        }),
       })
       if (!res.ok) {
         console.error("[email] Resend send failed:", await res.text())
@@ -45,6 +55,8 @@ export async function sendEmail({ to, subject, text }: SendEmailInput): Promise<
         secure: port === 465,
         auth: { user: smtpUser, pass: smtpPass },
       })
+      // Gmail/most SMTP servers require From to be the authenticated mailbox.
+      const from = configuredFrom ?? `Meridian <${smtpUser}>`
       await transport.sendMail({ from, to, subject, text })
       return
     }

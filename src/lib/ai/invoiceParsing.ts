@@ -54,45 +54,129 @@ function normalizeDueDate(value: string | null): string | null {
   return new Date(parsed).toISOString().slice(0, 10)
 }
 
-// Returns parsed fields, or null when the model output can't be trusted.
-// Throws AIConfigError (via getAnthropicClient) when AI isn't configured so the
-// route can return a distinct 503.
+// ─── Heuristic (no-AI) fallback ──────────────────────────────────────────────
+// Best-effort regex extraction so PDF upload still auto-fills when Anthropic
+// isn't configured (or the AI call fails). Missing fields are left null for the
+// user to complete.
+
+function num(s: string): number | null {
+  const n = parseFloat(s.replace(/,/g, ""))
+  return Number.isFinite(n) ? n : null
+}
+
+function heuristicAmount(text: string): number | null {
+  const lines = text.split(/\r?\n/)
+  // "subtotal" deliberately excluded so it doesn't win over the real total.
+  const priority =
+    /(grand total|amount due|balance due|total due|amount payable|total amount|\btotal\b)/i
+  const subtotal = /sub[-\s]?total/i
+  const moneyRe = /([0-9][0-9,]*(?:\.[0-9]{1,2})?)/g
+  // Take the largest amount across all total-style lines (handles subtotal < total).
+  const totals: number[] = []
+  for (const line of lines) {
+    if (priority.test(line) && !subtotal.test(line)) {
+      for (const m of line.matchAll(moneyRe)) {
+        const n = num(m[1])
+        if (n !== null && n > 0) totals.push(n)
+      }
+    }
+  }
+  if (totals.length) return Math.max(...totals)
+  // Otherwise the largest currency-tagged or decimal amount in the document.
+  const tagged = [
+    ...text.matchAll(/(?:USD|US\$|\$|AED|د\.إ)\s*([0-9][0-9,]*(?:\.[0-9]{1,2})?)/g),
+    ...text.matchAll(/([0-9][0-9,]*\.[0-9]{2})\b/g),
+  ]
+    .map((m) => num(m[1]))
+    .filter((n): n is number => n !== null && n > 0)
+  return tagged.length ? Math.max(...tagged) : null
+}
+
+function heuristicInvoiceNumber(text: string): string | null {
+  const m = text.match(
+    /invoice\s*(?:no\.?|number|num|#)?\s*[:#-]?\s*([A-Za-z0-9][A-Za-z0-9/-]{1,})/i
+  )
+  if (m?.[1]) return m[1]
+  const m2 = text.match(/\b(INV[-\s]?[A-Za-z0-9-]{2,})\b/i)
+  return m2?.[1] ? m2[1].replace(/\s+/, "-") : null
+}
+
+function heuristicEmail(text: string): string | null {
+  return (
+    text.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/)?.[0] ?? null
+  )
+}
+
+function heuristicDueDate(text: string): string | null {
+  const dateRe =
+    /(\d{4}-\d{2}-\d{2})|(\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4})|([A-Za-z]{3,9}\.?\s+\d{1,2},?\s+\d{4})/
+  const dueLine = text
+    .split(/\r?\n/)
+    .find((l) => /due\s*date|payment due|due/i.test(l))
+  const src = dueLine ?? text
+  const m = src.match(dateRe)
+  return m ? normalizeDueDate(m[0]) : null
+}
+
+function heuristicBuyerName(text: string): string | null {
+  const m =
+    text.match(/bill\s*to\s*[:\n]\s*([^\n]+)/i) ??
+    text.match(/(?:^|\n)\s*to\s*[:\n]\s*([^\n]+)/i)
+  const name = m?.[1]?.trim()
+  return name && name.length > 1 ? name.slice(0, 120) : null
+}
+
+export function heuristicParseInvoice(text: string): ParsedInvoice {
+  return {
+    invoiceNumber: heuristicInvoiceNumber(text),
+    buyerName: heuristicBuyerName(text),
+    buyerEmail: heuristicEmail(text),
+    amountUSD: heuristicAmount(text),
+    dueDate: heuristicDueDate(text),
+    description: null,
+    items: null,
+  }
+}
+
+// Returns parsed fields. Uses Claude when configured; otherwise (or if the AI
+// call fails) falls back to a heuristic parse so PDF upload always works.
 export async function parseInvoiceText(
   rawText: string
 ): Promise<ParsedInvoice | null> {
   if (!isAIConfigured()) {
-    // Surface a typed config error to the caller.
-    getAnthropicClient()
+    return heuristicParseInvoice(rawText)
   }
 
-  const client = getAnthropicClient()
-  const response = await client.messages.create({
-    model: PARSE_MODEL,
-    max_tokens: 1024,
-    system: [
-      { type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } },
-    ],
-    messages: [{ role: "user", content: buildUserPrompt(rawText) }],
-  })
-
-  const textBlock = response.content.find((b) => b.type === "text")
-  if (!textBlock || textBlock.type !== "text") return null
-
-  const json = extractJson(textBlock.text)
-  if (!json) return null
-
-  let candidate: unknown
   try {
-    candidate = JSON.parse(json)
-  } catch {
-    return null
-  }
+    const client = getAnthropicClient()
+    const response = await client.messages.create({
+      model: PARSE_MODEL,
+      max_tokens: 1024,
+      system: [
+        {
+          type: "text",
+          text: SYSTEM_PROMPT,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [{ role: "user", content: buildUserPrompt(rawText) }],
+    })
 
-  const result = parsedInvoiceSchema.safeParse(candidate)
-  if (!result.success) {
-    console.error("[invoiceParsing] invalid shape", result.error.issues)
-    return null
-  }
+    const textBlock = response.content.find((b) => b.type === "text")
+    const json =
+      textBlock && textBlock.type === "text" ? extractJson(textBlock.text) : null
+    if (!json) return heuristicParseInvoice(rawText)
 
-  return { ...result.data, dueDate: normalizeDueDate(result.data.dueDate) }
+    const candidate: unknown = JSON.parse(json)
+    const result = parsedInvoiceSchema.safeParse(candidate)
+    if (!result.success) {
+      console.error("[invoiceParsing] invalid shape", result.error.issues)
+      return heuristicParseInvoice(rawText)
+    }
+
+    return { ...result.data, dueDate: normalizeDueDate(result.data.dueDate) }
+  } catch (error) {
+    console.error("[invoiceParsing] AI parse failed, using heuristic", error)
+    return heuristicParseInvoice(rawText)
+  }
 }
