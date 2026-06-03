@@ -1,11 +1,17 @@
 import { prisma } from "@/lib/prisma"
-import { createWallet } from "@/lib/circle/wallets"
 import {
   transferUSDC,
   pollTransaction,
   toPaymentStatus,
 } from "@/lib/circle/payments"
+import type { CircleTransactionState } from "@/types/circle"
 import type { InvoiceWithRelations } from "@/lib/invoices"
+
+interface MoveResult {
+  circlePaymentId: string
+  state: CircleTransactionState
+  txHash?: string
+}
 
 // Simple on-chain credit passport scoring.
 const CREDIT_BASE_SCORE = 500
@@ -27,9 +33,41 @@ export class SettlementError extends Error {
   }
 }
 
-// Investor funds a SCORED invoice:
-//   investor wallet → per-invoice escrow wallet → SME wallet
-// Both legs are recorded as ADVANCE payments and the invoice moves to ACTIVE.
+// Move USDC between two wallets and wait for it to settle. Returns the terminal
+// status. Throws SettlementError on a confirmed on-chain failure so the caller
+// surfaces a clean 400 instead of leaving an invoice half-processed.
+//
+// NOTE: transfers are direct wallet→wallet. We deliberately do NOT route through
+// a per-invoice escrow wallet: on Arc, gas is paid in USDC, so an escrow holding
+// exactly the advance can never forward it (Circle rejects amount + estimatedGas
+// > balance), which previously failed the second leg and stranded funds with no
+// rollback. Direct transfers always come from a wallet that holds a surplus.
+async function moveUSDC(
+  fromCircleWalletId: string,
+  toAddress: string,
+  amountBaseUnits: bigint,
+  failureMessage: string
+): Promise<MoveResult> {
+  const tx = await transferUSDC({
+    fromCircleWalletId,
+    toAddress,
+    amountBaseUnits,
+  })
+  const status = await pollTransaction(tx.circlePaymentId)
+  if (toPaymentStatus(status.state) === "FAILED") {
+    throw new SettlementError(failureMessage)
+  }
+  return {
+    circlePaymentId: tx.circlePaymentId,
+    state: status.state,
+    txHash: status.txHash,
+  }
+}
+
+// Investor funds a SCORED invoice: a single direct transfer of the advance from
+// the investor wallet to the SME wallet. Records one ADVANCE payment and moves
+// the invoice to ACTIVE. (Single transfer ⇒ inherently atomic — it either lands
+// or it doesn't; nothing is left stranded.)
 export async function fundInvoice(
   invoiceId: string,
   investorId: string
@@ -66,68 +104,37 @@ export async function fundInvoice(
   const advance = advanceAmount(invoice.amountUSDC, invoice.advanceRate)
   const fee = feeAmount(advance, invoice.feeRate)
 
-  // Dedicated escrow wallet for this invoice, persisted as a Wallet row so both
-  // transfer legs can be recorded as Payments.
-  const escrowCircle = await createWallet(`escrow-${invoiceId}`)
-  const escrowWallet = await prisma.wallet.create({
-    data: {
-      circleWalletId: escrowCircle.circleWalletId,
-      address: escrowCircle.address,
-      blockchain: escrowCircle.blockchain,
-      isEscrow: true,
-      invoiceId,
-    },
-  })
-
-  // Leg 1: investor → escrow (wait for settlement before disbursing onward).
-  const toEscrow = await transferUSDC({
+  // Direct: investor → SME.
+  const tx = await transferUSDC({
     fromCircleWalletId: investorWallet.circleWalletId,
-    toAddress: escrowWallet.address,
-    amountBaseUnits: advance,
-  })
-  const escrowStatus = await pollTransaction(toEscrow.circlePaymentId)
-
-  // Leg 2: escrow → SME
-  const toSme = await transferUSDC({
-    fromCircleWalletId: escrowWallet.circleWalletId,
     toAddress: smeWallet.address,
     amountBaseUnits: advance,
   })
-  const smeStatus = await pollTransaction(toSme.circlePaymentId)
+  const status = await pollTransaction(tx.circlePaymentId)
+  if (toPaymentStatus(status.state) === "FAILED") {
+    throw new SettlementError(
+      "The funding transfer failed on-chain. No funds were moved; please try again."
+    )
+  }
 
-  // Record both advance legs.
-  await prisma.payment.createMany({
-    data: [
-      {
-        senderWalletId: investorWallet.id,
-        receiverWalletId: escrowWallet.id,
-        invoiceId,
-        amountUSDC: advance,
-        type: "ADVANCE",
-        status: toPaymentStatus(escrowStatus.state),
-        circlePaymentId: toEscrow.circlePaymentId,
-        txHash: escrowStatus.txHash,
-        blockchain: escrowWallet.blockchain,
-      },
-      {
-        senderWalletId: escrowWallet.id,
-        receiverWalletId: smeWallet.id,
-        invoiceId,
-        amountUSDC: advance,
-        type: "ADVANCE",
-        status: toPaymentStatus(smeStatus.state),
-        circlePaymentId: toSme.circlePaymentId,
-        txHash: smeStatus.txHash,
-        blockchain: smeWallet.blockchain,
-      },
-    ],
+  await prisma.payment.create({
+    data: {
+      senderWalletId: investorWallet.id,
+      receiverWalletId: smeWallet.id,
+      invoiceId,
+      amountUSDC: advance,
+      type: "ADVANCE",
+      status: toPaymentStatus(status.state),
+      circlePaymentId: tx.circlePaymentId,
+      txHash: status.txHash,
+      blockchain: smeWallet.blockchain,
+    },
   })
 
   return prisma.invoice.update({
     where: { id: invoiceId },
     data: {
       investorId,
-      escrowWalletId: escrowWallet.circleWalletId,
       status: "ACTIVE",
       fundedAt: new Date(),
       feeAmountUSDC: fee,
@@ -136,13 +143,15 @@ export async function fundInvoice(
   })
 }
 
-// Settlement waterfall (simulates the buyer repaying):
-//   SME wallet  → escrow            (full invoice amount)
-//   escrow      → investor wallet   (principal = advance; type SETTLEMENT)
-//   escrow      → platform wallet   (protocol fee)
-//   escrow      → SME wallet        (holdback = invoice − advance − fee)
-// Records REPAYMENT + SETTLEMENT payments, writes an on-time CreditEvent for
-// the SME, and moves the invoice to SETTLED.
+// Settlement (simulates the buyer repaying): the SME wallet pays the investor
+// their principal and the platform its fee, both as direct transfers:
+//   SME → investor   (principal = advance; type SETTLEMENT)
+//   SME → platform   (protocol fee; type FEE)
+// The SME retains the remainder (invoice − advance − fee) — no escrow round-trip.
+// Records both payments, writes an on-time CreditEvent, and moves the invoice to
+// SETTLED. Payments are written as each leg confirms, so a partial failure
+// leaves an audit trail and the invoice stays ACTIVE (retryable) rather than
+// being marked SETTLED prematurely.
 export async function settleInvoice(
   invoiceId: string
 ): Promise<InvoiceWithRelations> {
@@ -167,13 +176,6 @@ export async function settleInvoice(
     throw new SettlementError("Both parties need wallets to settle.")
   }
 
-  const escrowWallet = await prisma.wallet.findFirst({
-    where: { invoiceId, isEscrow: true },
-  })
-  if (!escrowWallet) {
-    throw new SettlementError("Escrow wallet not found for this invoice.")
-  }
-
   const platformAddress = process.env.PLATFORM_WALLET_ADDRESS
   if (!platformAddress || platformAddress === "REPLACE_ME") {
     throw new SettlementError(
@@ -181,70 +183,44 @@ export async function settleInvoice(
     )
   }
 
-  const amount = invoice.amountUSDC
-  const principalToInvestor = advanceAmount(amount, invoice.advanceRate)
+  const principalToInvestor = advanceAmount(
+    invoice.amountUSDC,
+    invoice.advanceRate
+  )
   const feeToProtocol =
     invoice.feeAmountUSDC ?? feeAmount(principalToInvestor, invoice.feeRate)
-  const holdbackToSme = amount - principalToInvestor - feeToProtocol
 
-  // 1. SME → escrow: full invoice amount (simulates the buyer repaying).
-  const repay = await transferUSDC({
-    fromCircleWalletId: smeWallet.circleWalletId,
-    toAddress: escrowWallet.address,
-    amountBaseUnits: amount,
-  })
-  const repayStatus = await pollTransaction(repay.circlePaymentId)
+  // 1. SME → investor: principal (the advance returned).
+  const payout = await moveUSDC(
+    smeWallet.circleWalletId,
+    investorWallet.address,
+    principalToInvestor,
+    "The investor payout failed on-chain. The invoice was not settled; please try again."
+  )
   await prisma.payment.create({
     data: {
       senderWalletId: smeWallet.id,
-      receiverWalletId: escrowWallet.id,
-      invoiceId,
-      amountUSDC: amount,
-      type: "REPAYMENT",
-      status: toPaymentStatus(repayStatus.state),
-      circlePaymentId: repay.circlePaymentId,
-      txHash: repayStatus.txHash,
-      blockchain: smeWallet.blockchain,
-    },
-  })
-
-  // 2. escrow → investor: principal (the advance).
-  const payout = await transferUSDC({
-    fromCircleWalletId: escrowWallet.circleWalletId,
-    toAddress: investorWallet.address,
-    amountBaseUnits: principalToInvestor,
-  })
-  const payoutStatus = await pollTransaction(payout.circlePaymentId)
-  await prisma.payment.create({
-    data: {
-      senderWalletId: escrowWallet.id,
       receiverWalletId: investorWallet.id,
       invoiceId,
       amountUSDC: principalToInvestor,
       type: "SETTLEMENT",
-      status: toPaymentStatus(payoutStatus.state),
+      status: toPaymentStatus(payout.state),
       circlePaymentId: payout.circlePaymentId,
-      txHash: payoutStatus.txHash,
-      blockchain: escrowWallet.blockchain,
+      txHash: payout.txHash,
+      blockchain: smeWallet.blockchain,
     },
   })
 
-  // 3. escrow → platform fee wallet: protocol fee.
-  const feeTransfer = await transferUSDC({
-    fromCircleWalletId: escrowWallet.circleWalletId,
-    toAddress: platformAddress,
-    amountBaseUnits: feeToProtocol,
-  })
-  await pollTransaction(feeTransfer.circlePaymentId)
-
-  // 4. escrow → SME: holdback (invoice − advance − fee), so escrow nets to zero.
-  if (holdbackToSme > 0n) {
-    const holdback = await transferUSDC({
-      fromCircleWalletId: escrowWallet.circleWalletId,
-      toAddress: smeWallet.address,
-      amountBaseUnits: holdbackToSme,
-    })
-    await pollTransaction(holdback.circlePaymentId)
+  // 2. SME → platform: protocol fee. (The platform address has no Wallet row,
+  // so this leg isn't recorded as a Payment; the amount lives on
+  // invoice.feeAmountUSDC.)
+  if (feeToProtocol > 0n) {
+    await moveUSDC(
+      smeWallet.circleWalletId,
+      platformAddress,
+      feeToProtocol,
+      "The fee transfer failed on-chain. The investor was already repaid; please retry to complete settlement."
+    )
   }
 
   // Credit passport event for the SME (on-time settlement).
