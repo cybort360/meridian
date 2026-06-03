@@ -174,3 +174,11 @@ Then add every variable from `.env.local` to the Vercel project's Environment
 Variables, set `NEXTAUTH_URL` / `NEXT_PUBLIC_APP_URL` to the deployed URL, point
 `DATABASE_URL` at a hosted Postgres (e.g. Supabase), and register the deployed
 `/api/webhooks/circle` endpoint in the Circle console.
+
+---
+
+## Development Tools
+
+This project was built using Claude Code (Anthropic) as an AI coding assistant,
+under an active Anthropic subscription. All code, architecture decisions, and
+product design are original work by the submitter.
