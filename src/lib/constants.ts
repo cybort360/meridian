@@ -45,3 +45,28 @@ export const ARC_CHAIN_ID = 5042002
 export function arcTxUrl(txHash: string): string {
   return `${ARC_EXPLORER_URL}/tx/${txHash}`
 }
+
+// ─── Circle Gateway (unified USDC balance) ──────────────────
+// The Gateway Wallet contract address is the same across all supported EVM
+// chains (Arc testnet included). https://developers.circle.com/gateway
+export const GATEWAY_WALLET_ADDRESS =
+  "0x0077777d7EBA4688BDeF3E311b846F25870A19B9"
+// Public, no-auth balances endpoint. POST /v1/balances { token, sources }.
+export const GATEWAY_API_URL = "https://gateway-api-testnet.circle.com"
+// GatewayMinter receives the attestation and mints USDC on the destination
+// chain. Same address across supported EVM testnets (Arc included).
+export const GATEWAY_MINTER_ADDRESS =
+  "0x0022222ABE238Cc2C7Bb1f21003F0a260052475B"
+// CCTP/Gateway domain id for Arc testnet.
+export const ARC_GATEWAY_DOMAIN = 26
+
+// ─── Circle USYC (tokenized T-bill yield) ───────────────────
+// USYC is only deployed on Ethereum Sepolia on testnet (not Arc), so the
+// "real" yield mode runs the investor's subscribe/redeem there. The simulated
+// mode models the same flow on Arc without touching these contracts.
+// https://developers.circle.com/tokenized/usyc
+export const USYC_BLOCKCHAIN = "ETH-SEPOLIA"
+export const USYC_TELLER_ADDRESS = "0x96424C885951ceb4B79fecb934eD857999e6f82B"
+export const USYC_TOKEN_ADDRESS = "0x38D3A3f8717F4DB1CcB4Ad7D8C755919440848A3"
+export const SEPOLIA_USDC_ADDRESS =
+  "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"

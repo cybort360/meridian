@@ -6,6 +6,8 @@ import { BalanceCard } from "@/components/wallet/BalanceCard"
 import { SendForm } from "@/components/wallet/SendForm"
 import { TransactionRow } from "@/components/wallet/TransactionRow"
 import { CctpDemo } from "@/components/wallet/CctpDemo"
+import { UnifiedBalanceCard } from "@/components/wallet/UnifiedBalanceCard"
+import { YieldPanel } from "@/components/wallet/YieldPanel"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { WalletSkeleton } from "@/components/shared/Skeletons"
@@ -77,6 +79,11 @@ export default function WalletPage() {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <BalanceCard wallet={wallet} onRefetch={refetch} />
             <SendForm onSuccess={refetch} />
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <UnifiedBalanceCard />
+            <YieldPanel />
           </div>
 
           <CctpDemo />

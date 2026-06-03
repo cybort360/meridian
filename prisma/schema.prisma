@@ -25,6 +25,7 @@ model User {
   funded        Invoice[] @relation("InvestorInvoices")
   sessions      Session[]
   kycSubmission KycSubmission?
+  yieldPositions YieldPosition[]
 }
 
 enum UserRole {
@@ -193,4 +194,37 @@ model CreditEvent {
   scoreChange Int
   newScore    Int
   createdAt   DateTime  @default(now())
+}
+
+// An investor's idle USDC parked into USYC to earn T-bill yield. Non-custodial:
+// the position is held in the investor's own wallet. SIMULATED positions accrue
+// yield arithmetically (apyBps × elapsed) on Arc; REAL positions hold actual
+// USYC shares from the Sepolia Teller contract.
+model YieldPosition {
+  id              String        @id @default(cuid())
+  userId          String
+  principalUSDC   BigInt        // USDC subscribed, in base units (6 decimals)
+  shares          String?       // USYC shares received (real mode); null if simulated
+  apyBps          Int           // APY snapshot in basis points, for simulated accrual
+  mode            YieldMode
+  chain           String        // "ARC-TESTNET" (simulated) | "ETH-SEPOLIA" (real)
+  status          YieldStatus   @default(ACTIVE)
+  subscribeTxHash String?
+  redeemTxHash    String?
+  openedAt        DateTime      @default(now())
+  closedAt        DateTime?
+
+  user            User          @relation(fields: [userId], references: [id])
+
+  @@index([userId, status])
+}
+
+enum YieldMode {
+  SIMULATED
+  REAL
+}
+
+enum YieldStatus {
+  ACTIVE
+  REDEEMED
 }
