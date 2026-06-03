@@ -35,7 +35,7 @@ export function TopBar() {
   const { data: session } = useSession()
 
   return (
-    <header className="flex h-16 items-center justify-between border-b border-slate-800 bg-slate-900 px-4 md:px-6">
+    <header className="flex h-16 items-center justify-between border-b border-slate-800 bg-slate-900 px-4 md:px-6 print:hidden">
       <div className="flex items-center gap-2 md:hidden">
         <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gold">
           <span className="font-sora text-sm font-bold text-[#0C0D13]">M</span>

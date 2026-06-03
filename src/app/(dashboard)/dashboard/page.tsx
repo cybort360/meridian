@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react"
 import { format } from "date-fns"
 import { motion } from "framer-motion"
-import { toast } from "sonner"
-import { Calendar, ChevronDown, Download } from "lucide-react"
+import { Download } from "lucide-react"
 import { useDashboard } from "@/hooks/useDashboard"
 import { useProfile } from "@/hooks/useProfile"
 import { MetricCards } from "@/components/dashboard/MetricCards"
+import { MonthSelector } from "@/components/dashboard/MonthSelector"
 import { SecondaryStats } from "@/components/dashboard/SecondaryStats"
 import { FlowChart } from "@/components/dashboard/FlowChart"
 import { InvoicePipeline } from "@/components/dashboard/InvoicePipeline"
@@ -30,27 +30,14 @@ function WelcomeDate({ company }: { company: string | null }) {
   )
 }
 
-function MonthSelector() {
-  const [now, setNow] = useState<Date | null>(null)
-  useEffect(() => setNow(new Date()), [])
-  return (
-    <div className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-300">
-      <Calendar className="h-4 w-4 text-slate-500" />
-      <span>{now ? format(now, "MMMM yyyy") : "—"}</span>
-      <ChevronDown className="h-4 w-4 text-slate-500" />
-    </div>
-  )
-}
-
 export default function DashboardPage() {
-  const { data, loading, error } = useDashboard()
+  const [month, setMonth] = useState(() => format(new Date(), "yyyy-MM"))
+  const { data, loading, error } = useDashboard(month)
   const { profile } = useProfile()
 
   function exportPdf() {
-    // Stubbed for now — wired up to real PDF export later.
-    toast("Exporting...", {
-      description: "Your Finance Hub report is being prepared.",
-    })
+    // Print-to-PDF: app chrome and the controls are hidden via print: styles.
+    window.print()
   }
 
   return (
@@ -63,8 +50,8 @@ export default function DashboardPage() {
           </h1>
           <WelcomeDate company={profile?.companyName ?? null} />
         </div>
-        <div className="flex items-center gap-2">
-          <MonthSelector />
+        <div className="flex items-center gap-2 print:hidden">
+          <MonthSelector value={month} onChange={setMonth} />
           <Button
             onClick={exportPdf}
             className="bg-gold text-[#0C0D13] hover:bg-gold-bright"

@@ -64,7 +64,8 @@ export interface DashboardData {
   recentActivity: ActivityItem[]
 }
 
-export function useDashboard() {
+// `month` is "YYYY-MM"; when set, the dashboard is scoped to that month.
+export function useDashboard(month?: string) {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -73,7 +74,9 @@ export function useDashboard() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch("/api/dashboard")
+      const res = await fetch(
+        month ? `/api/dashboard?month=${month}` : "/api/dashboard"
+      )
       const json = await res.json()
       if (!res.ok) {
         setError(json.error ?? "Could not load the dashboard.")
@@ -85,7 +88,7 @@ export function useDashboard() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [month])
 
   useEffect(() => {
     load()

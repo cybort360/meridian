@@ -126,3 +126,17 @@ html[lang="ar"] body {
   background: var(--elevated);
   border-radius: 2px;
 }
+
+/* Print-to-PDF (Export): render the dashboard's real colors and drop margins so
+   the Finance Hub report fills the page. App chrome uses print:hidden. */
+@media print {
+  html,
+  body {
+    background: var(--void) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  @page {
+    margin: 12mm;
+  }
+}

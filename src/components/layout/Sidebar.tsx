@@ -11,7 +11,7 @@ export function Sidebar() {
   const { t } = useLanguage()
 
   return (
-    <aside className="hidden w-64 shrink-0 flex-col border-e border-[rgba(255,255,255,0.05)] bg-[#080910] md:flex">
+    <aside className="hidden w-64 shrink-0 flex-col border-e border-[rgba(255,255,255,0.05)] bg-[#080910] md:flex print:hidden">
       <Link
         href="/dashboard"
         className="flex items-center gap-2.5 px-4 pb-6 pt-5"
