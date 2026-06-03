@@ -17,7 +17,12 @@ import { CIRCLE_BLOCKCHAIN } from "@/lib/constants"
 
 export type DemoEmit = (event: object) => void | Promise<void>
 
-const DEMO_PASSWORD = "password123"
+// No credential is baked into the source. The demo accounts' password comes
+// from DEMO_ACCOUNT_PASSWORD; if unset, a strong random one is generated per
+// process (the autopilot runs server-side and never logs in — set the env var
+// only if you want to sign in as the demo SME/investor to show the dashboard).
+const DEMO_PASSWORD =
+  process.env.DEMO_ACCOUNT_PASSWORD?.trim() || randomBytes(18).toString("base64url")
 const PAUSE_MS = 2000
 const FEE_BPS = 200 // 2% investor yield
 
@@ -62,7 +67,7 @@ export async function runDemo(emit: DemoEmit): Promise<{ durationMs: number }> {
   // ── Step 1: SME + investor onboarded, wallets ready ──────────────────────
   const sme = await prisma.user.upsert({
     where: { email: "sme@meridian.test" },
-    update: { companyName: "Gulf Cargo LLC" },
+    update: { companyName: "Gulf Cargo LLC", passwordHash },
     create: {
       email: "sme@meridian.test",
       name: "Layla Hassan",
@@ -74,7 +79,7 @@ export async function runDemo(emit: DemoEmit): Promise<{ durationMs: number }> {
   })
   const investor = await prisma.user.upsert({
     where: { email: "investor@meridian.test" },
-    update: {},
+    update: { passwordHash },
     create: {
       email: "investor@meridian.test",
       name: "Omar Reilly",

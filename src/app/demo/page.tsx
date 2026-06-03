@@ -455,9 +455,12 @@ export default function DemoPage() {
             </div>
 
             <div className="flex gap-3">
-              <Link href="/dashboard">
+              {/* The dashboard holds real per-account financial data, so the
+                  public demo funnels visitors through sign-up/login rather than
+                  deep-linking into the protected app. */}
+              <Link href="/register">
                 <Button className="bg-gold text-[#0C0D13] hover:bg-gold-bright">
-                  View Dashboard
+                  Create your account
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
