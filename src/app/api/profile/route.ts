@@ -12,6 +12,7 @@ const PROFILE_SELECT = {
   role: true,
   companyName: true,
   country: true,
+  kycStatus: true,
   createdAt: true,
 } as const
 
@@ -56,9 +57,25 @@ export async function PATCH(req: NextRequest) {
       )
     }
 
+    // Company name + country are verified-identity fields tied to the KYB
+    // record. Once a business is under review or approved, they're locked
+    // server-side — only the display name may change. This is the authoritative
+    // gate; the UI lock is cosmetic.
+    const current = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { kycStatus: true },
+    })
+    const identityLocked =
+      current?.kycStatus === "PENDING_REVIEW" ||
+      current?.kycStatus === "APPROVED"
+
+    const data = identityLocked
+      ? { name: parsed.data.name }
+      : parsed.data
+
     const user = await prisma.user.update({
       where: { id: session.user.id },
-      data: parsed.data,
+      data,
       select: PROFILE_SELECT,
     })
 

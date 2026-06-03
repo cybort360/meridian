@@ -79,9 +79,16 @@ export async function POST(req: NextRequest) {
       create: { userId, ...data },
       update: { ...data, submittedAt: new Date() },
     })
+    // Bind the user's displayed identity to the verified KYB record, so the
+    // company name investors see is the legal business name under review — not
+    // an arbitrary free-text value. These fields lock once review starts.
     await prisma.user.update({
       where: { id: userId },
-      data: { kycStatus: "PENDING_REVIEW" },
+      data: {
+        kycStatus: "PENDING_REVIEW",
+        companyName: d.legalBusinessName,
+        country: d.country,
+      },
     })
 
     // Sandbox/demo: auto-approve shortly after submission so the flow completes

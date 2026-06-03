@@ -10,6 +10,7 @@ import {
   Check,
   ExternalLink,
   ShieldCheck,
+  Lock,
 } from "lucide-react"
 import { useProfile, type Profile } from "@/hooks/useProfile"
 import { useWallet } from "@/hooks/useWallet"
@@ -62,10 +63,17 @@ function ProfileSection({ profile }: { profile: Profile }) {
     return () => clearTimeout(id)
   }, [saved])
 
+  // Company name + country are part of the verified business identity and are
+  // locked once KYB review starts (enforced server-side too). Only the display
+  // name stays editable.
+  const identityLocked =
+    profile.kycStatus === "PENDING_REVIEW" || profile.kycStatus === "APPROVED"
+
   const dirty =
     name !== profile.name ||
-    companyName !== (profile.companyName ?? "") ||
-    country !== profile.country
+    (!identityLocked &&
+      (companyName !== (profile.companyName ?? "") ||
+        country !== profile.country))
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -105,26 +113,45 @@ function ProfileSection({ profile }: { profile: Profile }) {
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="companyName">Company name</Label>
+              <Label htmlFor="companyName" className="flex items-center gap-1.5">
+                Company name
+                {identityLocked && <Lock className="h-3 w-3 text-slate-500" />}
+              </Label>
               <Input
                 id="companyName"
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
                 className={inputClass}
                 placeholder="Gulf Cargo LLC"
+                disabled={identityLocked}
+                readOnly={identityLocked}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="country">Country</Label>
+              <Label htmlFor="country" className="flex items-center gap-1.5">
+                Country
+                {identityLocked && <Lock className="h-3 w-3 text-slate-500" />}
+              </Label>
               <Input
                 id="country"
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
                 className={inputClass}
                 placeholder="UAE"
+                disabled={identityLocked}
+                readOnly={identityLocked}
               />
             </div>
           </div>
+
+          {identityLocked && (
+            <p className="flex items-start gap-1.5 text-xs text-slate-500">
+              <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" />
+              Your company name and country are part of your verified business
+              identity and can&apos;t be changed here. Contact support if they
+              need correcting.
+            </p>
+          )}
 
           <div className="flex items-center gap-3">
             <Button

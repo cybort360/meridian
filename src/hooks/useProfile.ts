@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import type { UserRole } from "@prisma/client"
+import type { UserRole, KycStatus } from "@prisma/client"
 
 export interface Profile {
   id: string
@@ -10,6 +10,7 @@ export interface Profile {
   role: UserRole
   companyName: string | null
   country: string
+  kycStatus: KycStatus
   createdAt: string
 }
 
