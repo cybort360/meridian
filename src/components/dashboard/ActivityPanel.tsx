@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { formatDistanceToNow } from "date-fns"
-import { motion, AnimatePresence } from "framer-motion"
 import { ArrowDownLeft, ArrowUpRight, Activity } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { USDCAmount } from "@/components/shared/USDCAmount"
@@ -56,21 +55,7 @@ function Row({ item }: { item: ActivityItem }) {
   )
 }
 
-function Section({ title, items }: { title: string; items: ActivityItem[] }) {
-  if (items.length === 0) return null
-  return (
-    <div>
-      <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-500">
-        {title}
-      </p>
-      <div className="divide-y divide-slate-800/60">
-        {items.map((item) => (
-          <Row key={item.id} item={item} />
-        ))}
-      </div>
-    </div>
-  )
-}
+type Direction = "IN" | "OUT"
 
 export function ActivityPanel({ items }: { items: ActivityItem[] }) {
   const { lastEvent, connected } = useRealtimeUpdates()
@@ -97,10 +82,14 @@ export function ActivityPanel({ items }: { items: ActivityItem[] }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastEvent])
 
+  const [tab, setTab] = useState<Direction>("IN")
+
   const combined = [...liveItems, ...items].slice(0, 30)
   const incoming = combined.filter((i) => i.direction === "IN")
   const outgoing = combined.filter((i) => i.direction === "OUT")
   const isEmpty = combined.length === 0
+
+  const visible = tab === "IN" ? incoming : outgoing
 
   return (
     <Card className="border-slate-800 bg-slate-900 text-slate-100">
@@ -114,6 +103,35 @@ export function ActivityPanel({ items }: { items: ActivityItem[] }) {
             </span>
           )}
         </CardTitle>
+
+        {!isEmpty && (
+          <div className="inline-flex rounded-lg bg-slate-800 p-0.5 text-xs font-medium">
+            {(["IN", "OUT"] as const).map((d) => {
+              const active = tab === d
+              const count = d === "IN" ? incoming.length : outgoing.length
+              return (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => setTab(d)}
+                  className={cn(
+                    "rounded-md px-3 py-1 transition-colors",
+                    active
+                      ? "bg-slate-700 text-slate-100"
+                      : "text-slate-400 hover:text-slate-200"
+                  )}
+                >
+                  {d === "IN" ? "Incoming" : "Outgoing"}
+                  <span
+                    className={cn("ml-1.5", active ? "text-slate-400" : "text-slate-600")}
+                  >
+                    {count}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         {isEmpty ? (
@@ -125,22 +143,18 @@ export function ActivityPanel({ items }: { items: ActivityItem[] }) {
         ) : (
           // Cap the height and scroll internally so a long feed doesn't keep
           // stretching the dashboard page.
-          <div className="max-h-80 space-y-4 overflow-y-auto pr-1">
-            <AnimatePresence initial={false}>
-              {liveItems.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: -12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                />
-              )}
-            </AnimatePresence>
-            <Section title="Incoming" items={incoming} />
-            {incoming.length > 0 && outgoing.length > 0 && (
-              <div className="border-t border-slate-800" />
+          <div className="max-h-80 overflow-y-auto pr-1">
+            {visible.length === 0 ? (
+              <p className="py-6 text-center text-xs text-slate-500">
+                No {tab === "IN" ? "incoming" : "outgoing"} activity yet.
+              </p>
+            ) : (
+              <div className="divide-y divide-slate-800/60">
+                {visible.map((item) => (
+                  <Row key={item.id} item={item} />
+                ))}
+              </div>
             )}
-            <Section title="Outgoing" items={outgoing} />
           </div>
         )}
       </CardContent>
