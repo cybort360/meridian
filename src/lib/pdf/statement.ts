@@ -42,8 +42,10 @@ function humanize(type: string): string {
   return type.charAt(0) + type.slice(1).toLowerCase()
 }
 
-// Builds and downloads a bank-statement-style PDF for the selected month.
-export function generateStatementPdf(input: StatementInput): void {
+// Builds a bank-statement-style PDF for the selected month and returns the raw
+// bytes. Runs server-side so the route can stream it with a Content-Disposition
+// header (reliable filename, unlike a client-side blob download).
+export function buildStatementPdf(input: StatementInput): Uint8Array {
   const doc = new jsPDF({ unit: "pt", format: "a4" })
   const pageW = doc.internal.pageSize.getWidth()
   const margin = 40
@@ -220,18 +222,5 @@ export function generateStatementPdf(input: StatementInput): void {
     })
   }
 
-  // Trigger the download with an explicit .pdf filename. jsPDF v4's doc.save()
-  // can drop the filename in Chrome (saving as a blob UUID with no extension),
-  // so build the anchor ourselves and set the download attribute directly.
-  const safeMonth = input.monthLabel.replace(/\s+/g, "-")
-  const blob = doc.output("blob")
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement("a")
-  a.href = url
-  a.download = `Meridian-Statement-${safeMonth}.pdf`
-  a.rel = "noopener"
-  document.body.appendChild(a)
-  a.click()
-  a.remove()
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
+  return new Uint8Array(doc.output("arraybuffer"))
 }
