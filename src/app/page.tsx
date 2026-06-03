@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Compass, Zap, ShieldCheck, Globe } from "lucide-react"
+import { Zap, ShieldCheck, Globe } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { APP_NAME } from "@/lib/constants"
 
@@ -26,10 +26,10 @@ export default function LandingPage() {
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <div className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-400/10 ring-1 ring-emerald-400/20">
-            <Compass className="h-5 w-5 text-emerald-400" />
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gold">
+            <span className="font-sora text-base font-bold text-[#0C0D13]">M</span>
           </span>
-          <span className="text-xl font-semibold tracking-tight">
+          <span className="font-sora text-xl font-bold tracking-tight">
             {APP_NAME}
           </span>
         </div>

@@ -5,7 +5,6 @@ import Link from "next/link"
 import confetti from "canvas-confetti"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-  Compass,
   Play,
   Check,
   Loader2,
@@ -266,10 +265,10 @@ export default function DemoPage() {
   return (
     <div className="flex min-h-screen flex-col items-center bg-slate-950 px-6 py-10 text-slate-100">
       <div className="flex items-center gap-2">
-        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-400/10 ring-1 ring-emerald-400/20">
-          <Compass className="h-5 w-5 text-emerald-400" />
+        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gold">
+          <span className="font-sora text-base font-bold text-[#0C0D13]">M</span>
         </span>
-        <span className="text-xl font-semibold tracking-tight">{APP_NAME}</span>
+        <span className="font-sora text-xl font-bold tracking-tight">{APP_NAME}</span>
         <span className="ml-2 rounded-full bg-emerald-400/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
           Demo Autopilot
         </span>

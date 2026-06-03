@@ -1,7 +1,7 @@
 "use client"
 
 import { useSession, signOut } from "next-auth/react"
-import { LogOut, Compass } from "lucide-react"
+import { LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { APP_NAME } from "@/lib/constants"
 import { useRealtimeUpdates } from "@/hooks/useRealtimeUpdates"
@@ -37,10 +37,10 @@ export function TopBar() {
   return (
     <header className="flex h-16 items-center justify-between border-b border-slate-800 bg-slate-900 px-4 md:px-6">
       <div className="flex items-center gap-2 md:hidden">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-400/10 ring-1 ring-emerald-400/20">
-          <Compass className="h-5 w-5 text-emerald-400" />
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gold">
+          <span className="font-sora text-sm font-bold text-[#0C0D13]">M</span>
         </span>
-        <span className="font-semibold text-slate-100">{APP_NAME}</span>
+        <span className="font-sora font-bold text-slate-100">{APP_NAME}</span>
       </div>
       <div className="ms-auto flex items-center gap-3">
         <LanguageToggle />

@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import {
-  Compass,
   FileText,
   Zap,
   ShieldCheck,
@@ -62,10 +61,10 @@ export function OnboardingView() {
       {/* Skip — top-right */}
       <div className="flex w-full max-w-xl items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-400/10 ring-1 ring-emerald-400/20">
-            <Compass className="h-5 w-5 text-emerald-400" />
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gold">
+            <span className="font-sora text-base font-bold text-[#0C0D13]">M</span>
           </span>
-          <span className="text-xl font-semibold tracking-tight">{APP_NAME}</span>
+          <span className="font-sora text-xl font-bold tracking-tight">{APP_NAME}</span>
         </div>
         <button
           type="button"

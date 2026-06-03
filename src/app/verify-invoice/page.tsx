@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { CheckCircle2, XCircle, Loader2, Compass } from "lucide-react"
+import { CheckCircle2, XCircle, Loader2 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 
 interface VerifyData {
@@ -110,10 +110,10 @@ export default function VerifyInvoicePage() {
   return (
     <div className="dark flex min-h-screen flex-col items-center justify-center bg-slate-950 px-4 py-12">
       <Link href="/" className="mb-8 flex items-center gap-2">
-        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-400/10 ring-1 ring-emerald-400/20">
-          <Compass className="h-6 w-6 text-emerald-400" />
+        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-gold">
+          <span className="font-sora text-lg font-bold text-[#0C0D13]">M</span>
         </span>
-        <span className="text-2xl font-semibold tracking-tight text-slate-100">
+        <span className="font-sora text-2xl font-bold tracking-tight text-slate-100">
           Meridian
         </span>
       </Link>
