@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth"
 import { format } from "date-fns"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { buildStatementPdf } from "@/lib/pdf/statement"
+import { buildStatementCsv } from "@/lib/statement/csv"
 import type { Invoice } from "@prisma/client"
 
 const DAY_MS = 86_400_000
@@ -23,9 +23,9 @@ function resolveWindow(monthParam: string | null): { start: Date; ref: Date } {
   return { start: new Date(now.getFullYear(), now.getMonth(), 1), ref: now }
 }
 
-// GET /api/dashboard/statement?month=YYYY-MM — streams a formatted PDF bank
+// GET /api/dashboard/statement?month=YYYY-MM — streams a formatted CSV bank
 // statement for the selected month. Returned with a Content-Disposition header
-// so the browser saves it with the right filename + .pdf extension (a
+// so the browser saves it with the right filename + .csv extension (a
 // client-side blob download drops the name when triggered after an await).
 export async function GET(req: NextRequest) {
   try {
@@ -153,7 +153,7 @@ export async function GET(req: NextRequest) {
     }
 
     const monthLabel = format(start, "MMMM yyyy")
-    const pdf = buildStatementPdf({
+    const csv = buildStatementCsv({
       account: {
         name: user?.name ?? "",
         companyName: user?.companyName ?? null,
@@ -167,13 +167,12 @@ export async function GET(req: NextRequest) {
       transactions,
     })
 
-    const filename = `Meridian-Statement-${monthLabel.replace(/\s+/g, "-")}.pdf`
-    return new NextResponse(pdf as unknown as BodyInit, {
+    const filename = `Meridian-Statement-${monthLabel.replace(/\s+/g, "-")}.csv`
+    return new NextResponse(csv, {
       status: 200,
       headers: {
-        "Content-Type": "application/pdf",
+        "Content-Type": "text/csv; charset=utf-8",
         "Content-Disposition": `attachment; filename="${filename}"`,
-        "Content-Length": String(pdf.byteLength),
         "Cache-Control": "no-store",
       },
     })

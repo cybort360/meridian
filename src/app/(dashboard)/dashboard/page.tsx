@@ -35,10 +35,10 @@ export default function DashboardPage() {
   const { data, loading, error } = useDashboard(month)
   const { profile } = useProfile()
 
-  // Download the formatted PDF statement for the selected month. The server
-  // streams it with a Content-Disposition header, so we navigate to the URL
-  // synchronously (within the click's user activation) for a reliable filename.
-  function exportPdf() {
+  // Download the CSV statement for the selected month. The server streams it
+  // with a Content-Disposition header, so we navigate to the URL synchronously
+  // (within the click's user activation) for a reliable filename.
+  function exportCsv() {
     const a = document.createElement("a")
     a.href = `/api/dashboard/statement?month=${month}`
     document.body.appendChild(a)
@@ -59,7 +59,7 @@ export default function DashboardPage() {
         <div className="flex items-center gap-2 print:hidden">
           <MonthSelector value={month} onChange={setMonth} />
           <Button
-            onClick={exportPdf}
+            onClick={exportCsv}
             className="bg-gold text-[#0C0D13] hover:bg-gold-bright"
           >
             <Download className="mr-2 h-4 w-4" />
