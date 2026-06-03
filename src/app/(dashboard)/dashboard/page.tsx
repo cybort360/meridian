@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react"
 import { format } from "date-fns"
 import { motion } from "framer-motion"
-import { Download } from "lucide-react"
+import { toast } from "sonner"
+import { Download, Loader2 } from "lucide-react"
 import { useDashboard } from "@/hooks/useDashboard"
 import { useProfile } from "@/hooks/useProfile"
+import { generateStatementPdf } from "@/lib/pdf/statement"
 import { MetricCards } from "@/components/dashboard/MetricCards"
 import { MonthSelector } from "@/components/dashboard/MonthSelector"
 import { SecondaryStats } from "@/components/dashboard/SecondaryStats"
@@ -34,10 +36,33 @@ export default function DashboardPage() {
   const [month, setMonth] = useState(() => format(new Date(), "yyyy-MM"))
   const { data, loading, error } = useDashboard(month)
   const { profile } = useProfile()
+  const [exporting, setExporting] = useState(false)
 
-  function exportPdf() {
-    // Print-to-PDF: app chrome and the controls are hidden via print: styles.
-    window.print()
+  // Builds a formatted bank-statement PDF for the selected month: summary
+  // figures + a line-by-line Money In / Money Out ledger.
+  async function exportPdf() {
+    if (!data || exporting) return
+    setExporting(true)
+    try {
+      const res = await fetch(`/api/dashboard/statement?month=${month}`)
+      const json = await res.json()
+      if (!res.ok) {
+        toast.error(json.error ?? "Could not build the statement.")
+        return
+      }
+      generateStatementPdf({
+        account: json.data.account,
+        monthLabel: format(new Date(`${month}-01T00:00:00`), "MMMM yyyy"),
+        generatedAt: new Date(),
+        stats: data.stats,
+        secondary: data.secondary,
+        transactions: json.data.transactions,
+      })
+    } catch {
+      toast.error("Could not build the statement.")
+    } finally {
+      setExporting(false)
+    }
   }
 
   return (
@@ -54,9 +79,14 @@ export default function DashboardPage() {
           <MonthSelector value={month} onChange={setMonth} />
           <Button
             onClick={exportPdf}
+            disabled={exporting || !data}
             className="bg-gold text-[#0C0D13] hover:bg-gold-bright"
           >
-            <Download className="mr-2 h-4 w-4" />
+            {exporting ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="mr-2 h-4 w-4" />
+            )}
             Export
           </Button>
         </div>
