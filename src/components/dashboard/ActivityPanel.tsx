@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { motion, AnimatePresence } from "framer-motion"
-import { ArrowDownLeft, ArrowUpRight, MoreHorizontal, Activity } from "lucide-react"
+import { ArrowDownLeft, ArrowUpRight, Activity } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { USDCAmount } from "@/components/shared/USDCAmount"
 import { EmptyState } from "@/components/shared/EmptyState"
@@ -97,7 +97,7 @@ export function ActivityPanel({ items }: { items: ActivityItem[] }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastEvent])
 
-  const combined = [...liveItems, ...items].slice(0, 6)
+  const combined = [...liveItems, ...items].slice(0, 30)
   const incoming = combined.filter((i) => i.direction === "IN")
   const outgoing = combined.filter((i) => i.direction === "OUT")
   const isEmpty = combined.length === 0
@@ -114,13 +114,6 @@ export function ActivityPanel({ items }: { items: ActivityItem[] }) {
             </span>
           )}
         </CardTitle>
-        <button
-          type="button"
-          className="text-slate-500 hover:text-slate-300"
-          aria-label="More options"
-        >
-          <MoreHorizontal className="h-4 w-4" />
-        </button>
       </CardHeader>
       <CardContent>
         {isEmpty ? (
@@ -130,7 +123,9 @@ export function ActivityPanel({ items }: { items: ActivityItem[] }) {
             description="USDC transfers appear here as invoices are funded and settled."
           />
         ) : (
-          <div className="space-y-4">
+          // Cap the height and scroll internally so a long feed doesn't keep
+          // stretching the dashboard page.
+          <div className="max-h-80 space-y-4 overflow-y-auto pr-1">
             <AnimatePresence initial={false}>
               {liveItems.length > 0 && (
                 <motion.div
