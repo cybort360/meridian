@@ -147,9 +147,8 @@ function ProfileSection({ profile }: { profile: Profile }) {
           {identityLocked && (
             <p className="flex items-start gap-1.5 text-xs text-slate-500">
               <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" />
-              Your company name and country are part of your verified business
-              identity and can&apos;t be changed here. Contact support if they
-              need correcting.
+              Your company name and country are locked to your verified KYC
+              record and can only change through re-verification.
             </p>
           )}
 
