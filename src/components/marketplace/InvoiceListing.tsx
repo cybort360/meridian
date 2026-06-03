@@ -35,7 +35,7 @@ export function InvoiceListing({
                 {invoice.sme?.companyName ?? invoice.sme?.name ?? "SME"}
               </p>
               {invoice.sme?.kycStatus === "APPROVED" && (
-                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-teal-400/10 px-2 py-0.5 text-xs font-medium text-teal-300 ring-1 ring-teal-400/20">
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[rgba(200,169,110,0.25)] bg-[rgba(200,169,110,0.12)] px-2.5 py-[3px] text-[10px] font-semibold uppercase tracking-[0.08em] text-gold">
                   <ShieldCheck className="h-3 w-3" />
                   Verified
                 </span>

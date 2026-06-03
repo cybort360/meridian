@@ -288,7 +288,7 @@ export default function DemoPage() {
           <Button
             onClick={start}
             size="lg"
-            className="mt-8 bg-emerald-500 text-slate-950 hover:bg-emerald-400"
+            className="mt-8 bg-gold text-[#0C0D13] hover:bg-gold-bright"
           >
             <Play className="mr-2 h-5 w-5 fill-slate-950" />
             Run Demo
@@ -457,7 +457,7 @@ export default function DemoPage() {
 
             <div className="flex gap-3">
               <Link href="/dashboard">
-                <Button className="bg-emerald-500 text-slate-950 hover:bg-emerald-400">
+                <Button className="bg-gold text-[#0C0D13] hover:bg-gold-bright">
                   View Dashboard
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>

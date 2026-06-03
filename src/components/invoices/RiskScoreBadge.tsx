@@ -2,9 +2,9 @@ import { cn } from "@/lib/utils"
 import type { RiskLabel } from "@/types"
 
 const RISK_STYLES: Record<RiskLabel, string> = {
-  LOW: "bg-emerald-400/10 text-emerald-400 border-emerald-400/20",
-  MEDIUM: "bg-amber-400/10 text-amber-400 border-amber-400/20",
-  HIGH: "bg-red-400/10 text-red-400 border-red-400/20",
+  LOW: "bg-[rgba(16,185,129,0.1)] text-[#10B981] border-[rgba(16,185,129,0.2)]",
+  MEDIUM: "bg-[rgba(245,158,11,0.1)] text-[#F59E0B] border-[rgba(245,158,11,0.2)]",
+  HIGH: "bg-[rgba(239,68,68,0.1)] text-[#EF4444] border-[rgba(239,68,68,0.2)]",
 }
 
 interface Props {
@@ -24,12 +24,12 @@ export function RiskScoreBadge({ score, label }: Props) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-medium",
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[3px] text-[10px] font-semibold uppercase tracking-[0.08em]",
         RISK_STYLES[label]
       )}
     >
-      <span className="font-mono font-semibold">{score}</span>
-      <span className="uppercase tracking-wide">{label}</span>
+      <span className="font-mono">{score}</span>
+      <span>{label}</span>
     </span>
   )
 }

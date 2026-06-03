@@ -30,7 +30,7 @@ export default function DashboardError({
       </p>
       <Button
         onClick={reset}
-        className="mt-4 bg-emerald-500 text-slate-950 hover:bg-emerald-400"
+        className="mt-4 bg-gold text-[#0C0D13] hover:bg-gold-bright"
       >
         Try again
       </Button>

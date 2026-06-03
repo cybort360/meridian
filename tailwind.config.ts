@@ -48,6 +48,53 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+
+        // ─── Meridian design system ──────────────────────────────────────
+        void: "#050508",
+        surface: "#0C0D13",
+        elevated: "#12131A",
+        gold: {
+          DEFAULT: "#C8A96E",
+          dim: "#8B7355",
+          bright: "#E8D5A3",
+          glow: "rgba(200,169,110,0.15)",
+        },
+        ink: {
+          50: "#F8F8F6",
+          200: "#9CA3AF",
+          400: "#6B7280",
+          600: "#4B5563",
+          800: "#1F2937",
+        },
+        // emerald: merged with Tailwind's default scale (50–950 preserved) so
+        // existing emerald-400/500/etc. keep working; just adds named accents.
+        emerald: {
+          DEFAULT: "#10B981",
+          dim: "#064E3B",
+          bright: "#34D399",
+          glow: "rgba(16,185,129,0.15)",
+        },
+        // slate: remapped to the new near-black ramp so the ~440 existing
+        // slate-* utilities across the app adopt the void/surface/ink palette
+        // without rewriting every component. Visual-only.
+        slate: {
+          50: "#F8F8F6",
+          100: "#F8F8F6",
+          200: "#E5E7EB",
+          300: "#C9CDD4",
+          400: "#9CA3AF",
+          500: "#6B7280",
+          600: "#4B5563",
+          700: "#242530",
+          800: "#16171F",
+          900: "#0C0D13",
+          950: "#050508",
+        },
+      },
+      borderColor: {
+        subtle: "rgba(255,255,255,0.06)",
+        DEFAULT: "rgba(255,255,255,0.10)",
+        strong: "rgba(255,255,255,0.18)",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -69,8 +116,11 @@ const config: Config = {
         "accordion-up": "accordion-up 0.2s ease-out",
       },
       fontFamily: {
-        sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
-        mono: ["var(--font-geist-mono)", "ui-monospace", "monospace"],
+        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        mono: ["var(--font-space)", "ui-monospace", "monospace"],
+        sora: ["var(--font-sora)", "system-ui", "sans-serif"],
+        inter: ["var(--font-inter)", "system-ui", "sans-serif"],
+        space: ["var(--font-space)", "system-ui", "sans-serif"],
       },
     },
   },

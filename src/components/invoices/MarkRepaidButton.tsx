@@ -58,7 +58,7 @@ export function MarkRepaidButton({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="w-full bg-emerald-500 text-slate-950 hover:bg-emerald-400">
+        <Button className="w-full bg-gold text-[#0C0D13] hover:bg-gold-bright">
           <CheckCircle2 className="mr-2 h-4 w-4" />
           Mark as repaid by buyer
         </Button>
@@ -85,7 +85,7 @@ export function MarkRepaidButton({
           <Button
             onClick={confirmSettle}
             disabled={loading}
-            className="bg-emerald-500 text-slate-950 hover:bg-emerald-400"
+            className="bg-gold text-[#0C0D13] hover:bg-gold-bright"
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Proceed

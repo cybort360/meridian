@@ -51,7 +51,7 @@ export default function LandingPage() {
             </Button>
           </Link>
           <Link href="/register">
-            <Button className="bg-emerald-500 text-slate-950 hover:bg-emerald-400">
+            <Button className="bg-gold text-[#0C0D13] hover:bg-gold-bright">
               Get Started
             </Button>
           </Link>
@@ -75,7 +75,7 @@ export default function LandingPage() {
             <Link href="/register">
               <Button
                 size="lg"
-                className="w-full bg-emerald-500 text-slate-950 hover:bg-emerald-400 sm:w-auto"
+                className="w-full bg-gold text-[#0C0D13] hover:bg-gold-bright sm:w-auto"
               >
                 Get Started
               </Button>

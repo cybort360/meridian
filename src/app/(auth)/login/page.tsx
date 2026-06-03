@@ -169,7 +169,7 @@ export default function LoginPage() {
               "w-full text-slate-950",
               success
                 ? "bg-emerald-600 hover:bg-emerald-600"
-                : "bg-emerald-500 hover:bg-emerald-400"
+                : "bg-gold hover:bg-gold-bright"
             )}
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

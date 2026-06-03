@@ -67,7 +67,7 @@ export default function DashboardPage() {
           <MonthSelector />
           <Button
             onClick={exportPdf}
-            className="bg-emerald-500 text-slate-950 hover:bg-emerald-400"
+            className="bg-gold text-[#0C0D13] hover:bg-gold-bright"
           >
             <Download className="mr-2 h-4 w-4" />
             Export

@@ -37,7 +37,7 @@ export default function InvoicesPage() {
         {isSme && !showForm && (
           <Button
             onClick={() => setShowForm(true)}
-            className="bg-emerald-500 text-slate-950 hover:bg-emerald-400"
+            className="bg-gold text-[#0C0D13] hover:bg-gold-bright"
           >
             <Plus className="mr-2 h-4 w-4" />
             New invoice
@@ -79,7 +79,7 @@ export default function InvoicesPage() {
           {isSme && (
             <Button
               onClick={() => setShowForm(true)}
-              className="bg-emerald-500 text-slate-950 hover:bg-emerald-400"
+              className="bg-gold text-[#0C0D13] hover:bg-gold-bright"
             >
               <Plus className="mr-2 h-4 w-4" />
               New invoice

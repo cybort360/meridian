@@ -50,7 +50,7 @@ export default function WalletPage() {
             <Button
               onClick={createWallet}
               disabled={creating}
-              className="bg-emerald-500 text-slate-950 hover:bg-emerald-400"
+              className="bg-gold text-[#0C0D13] hover:bg-gold-bright"
             >
               {creating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create wallet

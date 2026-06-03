@@ -127,7 +127,7 @@ export function OnboardingView() {
           onClick={finish}
           disabled={finishing}
           size="lg"
-          className="mt-8 w-full bg-emerald-500 text-slate-950 hover:bg-emerald-400 sm:w-auto"
+          className="mt-8 w-full bg-gold text-[#0C0D13] hover:bg-gold-bright sm:w-auto"
         >
           {finishing ? (
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />

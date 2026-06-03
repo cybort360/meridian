@@ -2,58 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Arabic mode: swap in Noto Sans Arabic ahead of the Geist sans stack.
-   Targets body too, since it carries the `font-sans` utility that would
-   otherwise win over a rule on <html>. Monospace (amounts) stays Geist Mono. */
-html[lang="ar"],
-html[lang="ar"] body {
-  font-family: "Noto Sans Arabic", var(--font-geist-sans), sans-serif;
+/* ─── Design tokens ─────────────────────────────────────────────────────── */
+:root {
+  --void: #050508;
+  --surface: #0c0d13;
+  --elevated: #12131a;
+  --border: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.1);
+
+  --gold: #c8a96e;
+  --gold-dim: rgba(200, 169, 110, 0.12);
+  --gold-border: rgba(200, 169, 110, 0.25);
+  --gold-text: #e8d5a3;
+
+  --emerald: #10b981;
+  --emerald-dim: rgba(16, 185, 129, 0.1);
+  --emerald-border: rgba(16, 185, 129, 0.2);
+
+  --text-primary: #f8f8f6;
+  --text-secondary: #9ca3af;
+  --text-muted: #4b5563;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
 }
 
+/* ─── shadcn token bridge ───────────────────────────────────────────────────
+   The shadcn UI primitives (Card, Dialog, Input, Select, Button) consume these
+   HSL variables via bg-card / border-border / ring-ring etc. They're repointed
+   to the new palette so every primitive adopts the theme automatically. The app
+   always renders with html.dark, but :root mirrors it to avoid any light flash. */
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
-  }
-
+  :root,
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --background: 240 23% 3%; /* void */
+    --foreground: 60 11% 97%; /* ink-50 */
+    --card: 232 23% 6%; /* surface */
+    --card-foreground: 60 11% 97%;
+    --popover: 231 18% 9%; /* elevated */
+    --popover-foreground: 60 11% 97%;
+    --primary: 39 46% 61%; /* gold */
+    --primary-foreground: 232 23% 6%;
+    --secondary: 231 18% 9%;
+    --secondary-foreground: 60 11% 97%;
+    --muted: 231 18% 9%;
+    --muted-foreground: 218 11% 65%; /* ink-200 */
+    --accent: 231 18% 9%;
+    --accent-foreground: 60 11% 97%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 60 11% 97%;
+    --border: 231 13% 11%;
+    --input: 231 13% 11%;
+    --ring: 39 46% 61%; /* gold focus */
+    --radius: 0.5rem;
   }
 }
 
@@ -63,5 +66,63 @@ html[lang="ar"] body {
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-inter), system-ui, sans-serif;
+    line-height: 1.65;
   }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-sora), system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+  input,
+  select,
+  textarea,
+  button {
+    font-family: var(--font-inter), system-ui, sans-serif;
+  }
+  /* Keep browser-autofilled fields on the dark theme instead of the default
+     light background Chrome/Safari force on -webkit-autofill. */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  select:-webkit-autofill {
+    -webkit-text-fill-color: var(--text-primary);
+    -webkit-box-shadow: 0 0 0 1000px var(--elevated) inset;
+    caret-color: var(--text-primary);
+    transition: background-color 9999s ease-in-out 0s;
+  }
+}
+
+/* Arabic mode: swap in Noto Sans Arabic ahead of the Inter stack (RTL).
+   Targets body too, since it carries the font utility. */
+html[lang="ar"],
+html[lang="ar"] body {
+  font-family: "Noto Sans Arabic", var(--font-inter), sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-sora), system-ui, sans-serif;
+}
+.font-body {
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+.font-number {
+  font-family: var(--font-space), system-ui, sans-serif;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: var(--void);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--elevated);
+  border-radius: 2px;
 }
