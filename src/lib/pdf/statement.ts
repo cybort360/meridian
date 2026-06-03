@@ -220,6 +220,18 @@ export function generateStatementPdf(input: StatementInput): void {
     })
   }
 
+  // Trigger the download with an explicit .pdf filename. jsPDF v4's doc.save()
+  // can drop the filename in Chrome (saving as a blob UUID with no extension),
+  // so build the anchor ourselves and set the download attribute directly.
   const safeMonth = input.monthLabel.replace(/\s+/g, "-")
-  doc.save(`Meridian-Statement-${safeMonth}.pdf`)
+  const blob = doc.output("blob")
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement("a")
+  a.href = url
+  a.download = `Meridian-Statement-${safeMonth}.pdf`
+  a.rel = "noopener"
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
