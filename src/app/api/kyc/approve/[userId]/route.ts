@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { captureError } from "@/lib/observability"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -29,7 +30,7 @@ export async function POST(
 
     return NextResponse.json({ data: { kycStatus: "APPROVED" } })
   } catch (error) {
-    console.error("[API /kyc/approve POST]", error)
+    captureError(error, { route: "API /kyc/approve POST" })
     return NextResponse.json(
       { error: "Could not approve the submission." },
       { status: 500 }

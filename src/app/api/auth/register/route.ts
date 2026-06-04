@@ -3,9 +3,14 @@ import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 import { registerSchema } from "@/lib/utils/validation"
 import { createWallet } from "@/lib/circle/wallets"
+import { enforceRateLimit, authLimiter } from "@/lib/rateLimit"
+import { captureError } from "@/lib/observability"
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = await enforceRateLimit(req, authLimiter)
+    if (limited) return limited
+
     const body = await req.json()
     const parsed = registerSchema.safeParse(body)
     if (!parsed.success) {
@@ -63,7 +68,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ data: user }, { status: 201 })
   } catch (error) {
-    console.error("[API /auth/register POST]", error)
+    captureError(error, { route: "/api/auth/register" })
     return NextResponse.json(
       { error: "Something went wrong. Please try again." },
       { status: 500 }

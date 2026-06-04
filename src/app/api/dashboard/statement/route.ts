@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { captureError } from "@/lib/observability"
 import { getServerSession } from "next-auth"
 import { format } from "date-fns"
 import { authOptions } from "@/lib/auth"
@@ -177,7 +178,7 @@ export async function GET(req: NextRequest) {
       },
     })
   } catch (error) {
-    console.error("[API /dashboard/statement GET]", error)
+    captureError(error, { route: "API /dashboard/statement GET" })
     return NextResponse.json(
       { error: "Could not build the statement. Please try again." },
       { status: 500 }

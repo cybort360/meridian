@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { captureError } from "@/lib/observability"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -54,7 +55,7 @@ export async function POST() {
     if (error instanceof CircleConfigError) {
       return NextResponse.json({ error: error.message }, { status: 503 })
     }
-    console.error("[API /wallets/create POST]", error)
+    captureError(error, { route: "API /wallets/create POST" })
     return NextResponse.json(
       { error: "Could not create a wallet. Please try again." },
       { status: 500 }

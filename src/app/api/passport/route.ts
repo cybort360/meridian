@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { captureError } from "@/lib/observability"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -84,7 +85,7 @@ export async function GET() {
       },
     })
   } catch (error) {
-    console.error("[API /passport GET]", error)
+    captureError(error, { route: "API /passport GET" })
     return NextResponse.json(
       { error: "Could not load your passport. Please try again." },
       { status: 500 }

@@ -4,6 +4,8 @@ import { z } from "zod"
 import { authOptions } from "@/lib/auth"
 import { redeem } from "@/lib/circle/usyc"
 import { CircleConfigError } from "@/lib/circle/client"
+import { enforceRateLimit, apiLimiter } from "@/lib/rateLimit"
+import { captureError } from "@/lib/observability"
 
 const RedeemSchema = z.object({
   positionId: z.string().min(1),
@@ -12,6 +14,9 @@ const RedeemSchema = z.object({
 // POST /api/yield/redeem — pull a position back from USYC into USDC.
 export async function POST(req: NextRequest) {
   try {
+    const limited = await enforceRateLimit(req, apiLimiter)
+    if (limited) return limited
+
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -32,7 +37,7 @@ export async function POST(req: NextRequest) {
     if (error instanceof CircleConfigError) {
       return NextResponse.json({ error: error.message }, { status: 503 })
     }
-    console.error("[API /yield/redeem POST]", error)
+    captureError(error, { route: "/api/yield/redeem" })
     return NextResponse.json(
       { error: "Could not redeem from USYC. Please try again." },
       { status: 500 }

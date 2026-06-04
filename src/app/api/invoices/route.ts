@@ -7,6 +7,9 @@ import { createInvoiceSchema } from "@/lib/utils/invoiceValidation"
 import { toUSDCBaseUnits, fromUSDCBaseUnits, formatUSDC } from "@/lib/utils/usdc"
 import { scoreAndPersist, serializeInvoice } from "@/lib/invoices"
 import { sendEmail } from "@/lib/email"
+import { enforceRateLimit, apiLimiter } from "@/lib/rateLimit"
+import { captureError } from "@/lib/observability"
+import { sanitizeText } from "@/lib/utils/sanitize"
 import type { Prisma } from "@prisma/client"
 
 const VALID_STATUSES = [
@@ -55,7 +58,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ data: invoices.map(serializeInvoice) })
   } catch (error) {
-    console.error("[API /invoices GET]", error)
+    captureError(error, { route: "API /invoices GET" })
     return NextResponse.json(
       { error: "Could not load invoices. Please try again." },
       { status: 500 }
@@ -66,6 +69,9 @@ export async function GET(req: NextRequest) {
 // POST /api/invoices — SME creates an invoice; AI scoring runs immediately.
 export async function POST(req: NextRequest) {
   try {
+    const limited = await enforceRateLimit(req, apiLimiter)
+    if (limited) return limited
+
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -107,9 +113,9 @@ export async function POST(req: NextRequest) {
     const created = await prisma.invoice.create({
       data: {
         smeId: session.user.id,
-        title: data.title,
-        description: data.description,
-        buyerName: data.buyerName,
+        title: sanitizeText(data.title),
+        description: data.description ? sanitizeText(data.description) : null,
+        buyerName: sanitizeText(data.buyerName),
         buyerEmail: data.buyerEmail,
         amountUSDC: toUSDCBaseUnits(data.amountUSDC),
         dueDate: new Date(data.dueDate),
@@ -143,7 +149,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ data: serializeInvoice(scored) }, { status: 201 })
   } catch (error) {
-    console.error("[API /invoices POST]", error)
+    captureError(error, { route: "/api/invoices" })
     return NextResponse.json(
       { error: "Could not create the invoice. Please try again." },
       { status: 500 }

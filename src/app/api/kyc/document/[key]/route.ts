@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { captureError } from "@/lib/observability"
 import { getServerSession } from "next-auth"
 import { readFile } from "fs/promises"
 import path from "path"
@@ -52,7 +53,7 @@ export async function GET(
       },
     })
   } catch (error) {
-    console.error("[API /kyc/document GET]", error)
+    captureError(error, { route: "API /kyc/document GET" })
     return NextResponse.json(
       { error: "Could not load the document." },
       { status: 500 }

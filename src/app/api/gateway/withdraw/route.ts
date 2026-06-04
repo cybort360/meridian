@@ -6,6 +6,8 @@ import { prisma } from "@/lib/prisma"
 import { withdrawToArc } from "@/lib/circle/gateway"
 import { toUSDCBaseUnits } from "@/lib/utils/usdc"
 import { CircleConfigError } from "@/lib/circle/client"
+import { enforceRateLimit, apiLimiter } from "@/lib/rateLimit"
+import { captureError } from "@/lib/observability"
 
 const WithdrawSchema = z.object({
   amount: z.number().positive().max(10_000_000),
@@ -15,6 +17,9 @@ const WithdrawSchema = z.object({
 // to the user's spendable Arc wallet (burn intent -> attestation -> mint).
 export async function POST(req: NextRequest) {
   try {
+    const limited = await enforceRateLimit(req, apiLimiter)
+    if (limited) return limited
+
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -49,7 +54,7 @@ export async function POST(req: NextRequest) {
     if (error instanceof CircleConfigError) {
       return NextResponse.json({ error: error.message }, { status: 503 })
     }
-    console.error("[API /gateway/withdraw POST]", error)
+    captureError(error, { route: "/api/gateway/withdraw" })
     return NextResponse.json(
       { error: "Could not bring your USDC back to Arc. Please try again." },
       { status: 500 }

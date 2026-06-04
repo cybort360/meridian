@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { captureError } from "@/lib/observability"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -35,7 +36,7 @@ export async function GET(
 
     return NextResponse.json({ data: serializeInvoice(invoice) })
   } catch (error) {
-    console.error("[API /invoices/[id] GET]", error)
+    captureError(error, { route: "API /invoices/[id] GET" })
     return NextResponse.json(
       { error: "Could not load the invoice. Please try again." },
       { status: 500 }

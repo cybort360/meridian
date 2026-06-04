@@ -2,6 +2,11 @@ import type { Metadata } from "next";
 import { Sora, Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+import { validateEnv } from "@/lib/env";
+
+// Fail fast at startup if a required secret is missing, rather than failing
+// silently mid-request.
+validateEnv();
 
 const sora = Sora({
   subsets: ["latin"],

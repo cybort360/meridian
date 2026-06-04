@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { captureError } from "@/lib/observability"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -6,9 +7,13 @@ import { transferSchema } from "@/lib/utils/validation"
 import { toUSDCBaseUnits } from "@/lib/utils/usdc"
 import { transferUSDC, pollTransaction, toPaymentStatus } from "@/lib/circle/payments"
 import { CircleConfigError } from "@/lib/circle/client"
+import { enforceRateLimit, apiLimiter } from "@/lib/rateLimit"
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = await enforceRateLimit(req, apiLimiter)
+    if (limited) return limited
+
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -104,7 +109,7 @@ export async function POST(req: NextRequest) {
     if (error instanceof CircleConfigError) {
       return NextResponse.json({ error: error.message }, { status: 503 })
     }
-    console.error("[API /payments/transfer POST]", error)
+    captureError(error, { route: "API /payments/transfer POST" })
     return NextResponse.json(
       { error: "The transfer could not be completed. Please try again." },
       { status: 500 }

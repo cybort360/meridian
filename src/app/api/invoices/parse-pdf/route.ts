@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { captureError } from "@/lib/observability"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { extractPdfText } from "@/lib/utils/pdf"
@@ -97,7 +98,7 @@ export async function POST(req: NextRequest) {
         { status: 503 }
       )
     }
-    console.error("[API /invoices/parse-pdf POST]", error)
+    captureError(error, { route: "API /invoices/parse-pdf POST" })
     return NextResponse.json(
       { error: "Could not parse the PDF. Please try again." },
       { status: 500 }

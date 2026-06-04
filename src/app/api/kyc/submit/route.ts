@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
+import { captureError } from "@/lib/observability"
 import { getServerSession } from "next-auth"
 import { access } from "fs/promises"
 import path from "path"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { kycSubmissionSchema } from "@/lib/utils/validation"
+import { sanitizeText } from "@/lib/utils/sanitize"
 import {
   KYC_DIR,
   isValidKey,
@@ -56,16 +58,22 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Strip any markup from free-text fields before persisting — these render in
+    // the admin review screen, and legalBusinessName becomes the user's public
+    // companyName shown to investors, so an unsanitized value is a stored-XSS path.
+    const legalBusinessName = sanitizeText(d.legalBusinessName)
+    const country = sanitizeText(d.country)
+
     const data = {
-      legalBusinessName: d.legalBusinessName,
-      tradeLicenseNumber: d.tradeLicenseNumber,
-      commercialRegNumber: d.commercialRegNumber,
-      businessAddress: d.businessAddress,
-      city: d.city,
-      country: d.country,
-      industry: d.industry,
+      legalBusinessName,
+      tradeLicenseNumber: sanitizeText(d.tradeLicenseNumber),
+      commercialRegNumber: sanitizeText(d.commercialRegNumber),
+      businessAddress: sanitizeText(d.businessAddress),
+      city: sanitizeText(d.city),
+      country,
+      industry: sanitizeText(d.industry),
       websiteUrl: d.websiteUrl || null,
-      phoneNumber: d.phoneNumber,
+      phoneNumber: sanitizeText(d.phoneNumber),
       tradeLicenseDocUrl: d.tradeLicenseDocUrl,
       ownerIdDocUrl: d.ownerIdDocUrl,
       proofOfAddressUrl: d.proofOfAddressUrl || null,
@@ -86,8 +94,8 @@ export async function POST(req: NextRequest) {
       where: { id: userId },
       data: {
         kycStatus: "PENDING_REVIEW",
-        companyName: d.legalBusinessName,
-        country: d.country,
+        companyName: legalBusinessName,
+        country,
       },
     })
 
@@ -116,7 +124,7 @@ export async function POST(req: NextRequest) {
       message: "Submitted for review",
     })
   } catch (error) {
-    console.error("[API /kyc/submit POST]", error)
+    captureError(error, { route: "API /kyc/submit POST" })
     return NextResponse.json(
       { error: "Could not submit your verification. Please try again." },
       { status: 500 }

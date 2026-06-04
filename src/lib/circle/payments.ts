@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto"
+import { randomUUID, createHash } from "crypto"
 import { getCircleClient } from "./client"
 import { ARC_USDC_TOKEN_ADDRESS, USDC_SYMBOL } from "@/lib/constants"
 import { baseUnitsToDecimalString } from "@/lib/utils/usdc"
@@ -7,6 +7,27 @@ import type {
   TransferResult,
   CircleTransactionState,
 } from "@/types/circle"
+
+// Deterministic idempotency key from the operation's identifying parts: the
+// same inputs always yield the same key, so a retry or rapid double-submit
+// reuses the original Circle transfer instead of creating a second one. Shaped
+// as a v4-style UUID because Circle expects a UUID-format idempotency key.
+export function createIdempotencyKey(...parts: string[]): string {
+  const h = createHash("sha256").update(parts.join("|")).digest("hex")
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-4${h.slice(13, 16)}-8${h.slice(
+    17,
+    20
+  )}-${h.slice(20, 32)}`
+}
+
+// Circle returns 409 when an idempotency key was already used with a different
+// payload, or (rarely) while the original is still in flight. Detect it so
+// callers can treat a duplicate as already-handled rather than a hard failure.
+export function isDuplicateRequestError(error: unknown): boolean {
+  const status = (error as { response?: { status?: number }; status?: number })
+  const code = status?.response?.status ?? status?.status
+  return code === 409
+}
 
 const TERMINAL_STATES: CircleTransactionState[] = [
   "COMPLETE",
@@ -67,7 +88,9 @@ export async function transferUSDC(
       type: "level",
       config: { feeLevel: "MEDIUM" },
     },
-    idempotencyKey: randomUUID(),
+    // Deterministic when the caller supplies one (money-moving paths do), so a
+    // retried request reuses the same on-chain transfer rather than double-paying.
+    idempotencyKey: params.idempotencyKey ?? randomUUID(),
   })
 
   const id = res.data?.id

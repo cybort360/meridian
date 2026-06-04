@@ -23,6 +23,9 @@ export interface TransferParams {
   fromCircleWalletId: string
   toAddress: string
   amountBaseUnits: bigint
+  // Deterministic key so a retry/double-submit reuses the same Circle transfer
+  // instead of creating a second one. Falls back to a random UUID if omitted.
+  idempotencyKey?: string
 }
 
 export interface TransferResult {

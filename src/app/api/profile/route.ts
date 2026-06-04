@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { captureError } from "@/lib/observability"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -33,7 +34,7 @@ export async function GET() {
 
     return NextResponse.json({ data: user }, { status: 200 })
   } catch (error) {
-    console.error("[API /profile GET]", error)
+    captureError(error, { route: "API /profile GET" })
     return NextResponse.json(
       { error: "Something went wrong. Please try again." },
       { status: 500 }
@@ -81,7 +82,7 @@ export async function PATCH(req: NextRequest) {
 
     return NextResponse.json({ data: user }, { status: 200 })
   } catch (error) {
-    console.error("[API /profile PATCH]", error)
+    captureError(error, { route: "API /profile PATCH" })
     return NextResponse.json(
       { error: "Something went wrong. Please try again." },
       { status: 500 }

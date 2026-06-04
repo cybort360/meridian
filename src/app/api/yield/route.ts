@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { captureError } from "@/lib/observability"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { getYieldSummary } from "@/lib/circle/usyc"
@@ -18,7 +19,7 @@ export async function GET() {
     if (error instanceof CircleConfigError) {
       return NextResponse.json({ error: error.message }, { status: 503 })
     }
-    console.error("[API /yield GET]", error)
+    captureError(error, { route: "API /yield GET" })
     return NextResponse.json(
       { error: "Could not load your yield positions. Please try again." },
       { status: 500 }

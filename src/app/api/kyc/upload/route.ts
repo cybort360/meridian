@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { captureError } from "@/lib/observability"
 import { getServerSession } from "next-auth"
 import { writeFile, mkdir } from "fs/promises"
 import { randomBytes } from "crypto"
@@ -68,7 +69,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ data: { url: urlForKey(storageKey) } })
   } catch (error) {
-    console.error("[API /kyc/upload POST]", error)
+    captureError(error, { route: "API /kyc/upload POST" })
     return NextResponse.json(
       { error: "Could not upload the file. Please try again." },
       { status: 500 }

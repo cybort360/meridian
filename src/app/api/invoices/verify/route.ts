@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { captureError } from "@/lib/observability"
 import { prisma } from "@/lib/prisma"
 import { fromUSDCBaseUnits, formatUSDC } from "@/lib/utils/usdc"
 
@@ -41,7 +42,7 @@ export async function GET(req: NextRequest) {
       },
     })
   } catch (error) {
-    console.error("[API /invoices/verify GET]", error)
+    captureError(error, { route: "API /invoices/verify GET" })
     return NextResponse.json(
       { error: "Could not verify the invoice. Please try again." },
       { status: 500 }

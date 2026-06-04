@@ -129,6 +129,11 @@ model Invoice {
   sme             User            @relation("SMEInvoices", fields: [smeId], references: [id])
   investor        User?           @relation("InvestorInvoices", fields: [investorId], references: [id])
   payments        Payment[]
+
+  @@index([smeId])
+  @@index([investorId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 enum InvoiceStatus {
@@ -170,6 +175,11 @@ model Payment {
   senderWallet        Wallet        @relation("SenderWallet", fields: [senderWalletId], references: [id])
   receiverWallet      Wallet        @relation("ReceiverWallet", fields: [receiverWalletId], references: [id])
   invoice             Invoice?      @relation(fields: [invoiceId], references: [id])
+
+  @@index([senderWalletId])
+  @@index([receiverWalletId])
+  @@index([invoiceId])
+  @@index([createdAt])
 }
 
 enum PaymentType {
@@ -194,6 +204,17 @@ model CreditEvent {
   scoreChange Int
   newScore    Int
   createdAt   DateTime  @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// Dedup ledger for Circle webhook deliveries — Circle can deliver the same
+// event more than once, so we record each event id and skip ones we've seen.
+model ProcessedWebhook {
+  id          String   @id @default(cuid())
+  eventId     String   @unique
+  processedAt DateTime @default(now())
 }
 
 // An investor's idle USDC parked into USYC to earn T-bill yield. Non-custodial:

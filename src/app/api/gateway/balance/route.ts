@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { captureError } from "@/lib/observability"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -26,7 +27,7 @@ export async function GET() {
     const balance = await getUnifiedBalance(wallet.address)
     return NextResponse.json({ data: balance })
   } catch (error) {
-    console.error("[API /gateway/balance GET]", error)
+    captureError(error, { route: "API /gateway/balance GET" })
     return NextResponse.json(
       { error: "Could not load your unified balance. Please try again." },
       { status: 500 }

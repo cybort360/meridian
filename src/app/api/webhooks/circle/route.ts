@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import crypto from "crypto"
 import { prisma } from "@/lib/prisma"
 import { toPaymentStatus } from "@/lib/circle/payments"
+import { captureError } from "@/lib/observability"
 import { sendEventToUser } from "@/lib/sse"
 import type { CircleTransactionState } from "@/types/circle"
 
@@ -76,6 +77,24 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = JSON.parse(rawBody)
+
+    // Dedup: Circle can deliver the same event more than once. Record the event
+    // id; a unique-constraint violation means we've already handled it.
+    const eventId: string | undefined = body?.id ?? body?.notificationId
+    if (eventId) {
+      try {
+        await prisma.processedWebhook.create({ data: { eventId } })
+      } catch (e) {
+        if ((e as { code?: string }).code === "P2002") {
+          return NextResponse.json(
+            { received: true, duplicate: true },
+            { status: 200 }
+          )
+        }
+        throw e
+      }
+    }
+
     // Circle nests the resource under `notification`; transactions carry id + state.
     const tx = body?.notification?.transaction ?? body?.notification ?? body
     const circlePaymentId: string | undefined = tx?.id
@@ -118,8 +137,8 @@ export async function POST(req: NextRequest) {
       }
     }
   } catch (error) {
-    // Never let processing errors turn into a non-200; log and move on.
-    console.error("[webhook/circle] processing error", error)
+    // Never let processing errors turn into a non-200; report and move on.
+    captureError(error, { route: "/api/webhooks/circle" })
   }
 
   return NextResponse.json({ received: true }, { status: 200 })

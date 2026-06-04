@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { captureError } from "@/lib/observability"
 import { z } from "zod"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
@@ -45,7 +46,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ data: result })
   } catch (error) {
-    console.error("[API /payments/cctp POST]", error)
+    captureError(error, { route: "API /payments/cctp POST" })
     return NextResponse.json(
       { error: "The cross-chain transfer could not be completed." },
       { status: 500 }

@@ -5,16 +5,21 @@ import { prisma } from "@/lib/prisma"
 import { settleInvoice, SettlementError } from "@/lib/settlement"
 import { serializeInvoice } from "@/lib/invoices"
 import { CircleConfigError } from "@/lib/circle/client"
+import { enforceRateLimit, paymentLimiter } from "@/lib/rateLimit"
+import { captureError } from "@/lib/observability"
 
 // POST /api/invoices/[id]/settle — simulate buyer repayment + investor payout.
 // Settlement moves USDC OUT of the SME wallet, so only the SME may trigger it
 // ("Mark as repaid"). Allowing the investor here would let them pull funds from
 // the SME before the buyer has actually paid.
 export async function POST(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const limited = await enforceRateLimit(req, paymentLimiter)
+    if (limited) return limited
+
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -40,7 +45,7 @@ export async function POST(
     if (error instanceof SettlementError) {
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
-    console.error("[API /invoices/[id]/settle POST]", error)
+    captureError(error, { route: "/api/invoices/[id]/settle", invoiceId: params.id })
     return NextResponse.json(
       { error: "Could not settle the invoice. Please try again." },
       { status: 500 }

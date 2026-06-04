@@ -3,6 +3,7 @@ import {
   transferUSDC,
   pollTransaction,
   toPaymentStatus,
+  createIdempotencyKey,
 } from "@/lib/circle/payments"
 import type { CircleTransactionState } from "@/types/circle"
 import type { InvoiceWithRelations } from "@/lib/invoices"
@@ -46,12 +47,14 @@ async function moveUSDC(
   fromCircleWalletId: string,
   toAddress: string,
   amountBaseUnits: bigint,
-  failureMessage: string
+  failureMessage: string,
+  idempotencyKey?: string
 ): Promise<MoveResult> {
   const tx = await transferUSDC({
     fromCircleWalletId,
     toAddress,
     amountBaseUnits,
+    idempotencyKey,
   })
   const status = await pollTransaction(tx.circlePaymentId)
   if (toPaymentStatus(status.state) === "FAILED") {
@@ -104,43 +107,73 @@ export async function fundInvoice(
   const advance = advanceAmount(invoice.amountUSDC, invoice.advanceRate)
   const fee = feeAmount(advance, invoice.feeRate)
 
-  // Direct: investor → SME.
-  const tx = await transferUSDC({
-    fromCircleWalletId: investorWallet.circleWalletId,
-    toAddress: smeWallet.address,
-    amountBaseUnits: advance,
+  // Atomic claim: flip SCORED → FUNDED only while it's still SCORED. A rapid
+  // double-submit makes the second update affect 0 rows, so only one request
+  // ever proceeds to move money. (This is what prevents a double-fund — we do
+  // it before the transfer, not inside a DB transaction wrapped around the
+  // multi-second Circle poll, which would exhaust a pooled connection.)
+  const claim = await prisma.invoice.updateMany({
+    where: { id: invoiceId, status: "SCORED" },
+    data: { status: "FUNDED", investorId },
   })
-  const status = await pollTransaction(tx.circlePaymentId)
-  if (toPaymentStatus(status.state) === "FAILED") {
-    throw new SettlementError(
-      "The funding transfer failed on-chain. No funds were moved; please try again."
-    )
+  if (claim.count === 0) {
+    throw new SettlementError("This invoice is not available for funding.")
   }
 
-  await prisma.payment.create({
-    data: {
-      senderWalletId: investorWallet.id,
-      receiverWalletId: smeWallet.id,
-      invoiceId,
-      amountUSDC: advance,
-      type: "ADVANCE",
-      status: toPaymentStatus(status.state),
-      circlePaymentId: tx.circlePaymentId,
-      txHash: status.txHash,
-      blockchain: smeWallet.blockchain,
-    },
-  })
+  try {
+    // Direct: investor → SME, with a deterministic key so a retry can't create
+    // a second on-chain transfer.
+    const tx = await transferUSDC({
+      fromCircleWalletId: investorWallet.circleWalletId,
+      toAddress: smeWallet.address,
+      amountBaseUnits: advance,
+      idempotencyKey: createIdempotencyKey(invoiceId, "FUND", investorId),
+    })
+    const status = await pollTransaction(tx.circlePaymentId)
+    if (toPaymentStatus(status.state) === "FAILED") {
+      throw new SettlementError(
+        "The funding transfer failed on-chain. No funds were moved; please try again."
+      )
+    }
 
-  return prisma.invoice.update({
-    where: { id: invoiceId },
-    data: {
-      investorId,
-      status: "ACTIVE",
-      fundedAt: new Date(),
-      feeAmountUSDC: fee,
-    },
-    include: { sme: true, investor: true },
-  })
+    // Record + finalize atomically once Circle confirms. Payment is upserted by
+    // its unique circlePaymentId, so a duplicate webhook/retry can't double-write.
+    return await prisma.$transaction(async (txdb) => {
+      await txdb.payment.upsert({
+        where: { circlePaymentId: tx.circlePaymentId },
+        create: {
+          senderWalletId: investorWallet.id,
+          receiverWalletId: smeWallet.id,
+          invoiceId,
+          amountUSDC: advance,
+          type: "ADVANCE",
+          status: toPaymentStatus(status.state),
+          circlePaymentId: tx.circlePaymentId,
+          txHash: status.txHash,
+          blockchain: smeWallet.blockchain,
+        },
+        update: { status: toPaymentStatus(status.state), txHash: status.txHash },
+      })
+      return txdb.invoice.update({
+        where: { id: invoiceId },
+        data: {
+          investorId,
+          status: "ACTIVE",
+          fundedAt: new Date(),
+          feeAmountUSDC: fee,
+        },
+        include: { sme: true, investor: true },
+      })
+    })
+  } catch (error) {
+    // Roll the claim back so the invoice is fundable again — but only if it's
+    // still FUNDED (i.e. we never reached ACTIVE). A successful run won't match.
+    await prisma.invoice.updateMany({
+      where: { id: invoiceId, status: "FUNDED" },
+      data: { status: "SCORED", investorId: null },
+    })
+    throw error
+  }
 }
 
 // Settlement (simulates the buyer repaying): the SME wallet pays the investor
@@ -190,15 +223,18 @@ export async function settleInvoice(
   const feeToProtocol =
     invoice.feeAmountUSDC ?? feeAmount(principalToInvestor, invoice.feeRate)
 
-  // 1. SME → investor: principal (the advance returned).
+  // 1. SME → investor: principal (the advance returned). Deterministic key ⇒ a
+  // retry reuses the same transfer rather than paying the investor twice.
   const payout = await moveUSDC(
     smeWallet.circleWalletId,
     investorWallet.address,
     principalToInvestor,
-    "The investor payout failed on-chain. The invoice was not settled; please try again."
+    "The investor payout failed on-chain. The invoice was not settled; please try again.",
+    createIdempotencyKey(invoiceId, "SETTLE-PRINCIPAL")
   )
-  await prisma.payment.create({
-    data: {
+  await prisma.payment.upsert({
+    where: { circlePaymentId: payout.circlePaymentId },
+    create: {
       senderWalletId: smeWallet.id,
       receiverWalletId: investorWallet.id,
       invoiceId,
@@ -209,6 +245,7 @@ export async function settleInvoice(
       txHash: payout.txHash,
       blockchain: smeWallet.blockchain,
     },
+    update: { status: toPaymentStatus(payout.state), txHash: payout.txHash },
   })
 
   // 2. SME → platform: protocol fee. (The platform address has no Wallet row,
@@ -219,29 +256,41 @@ export async function settleInvoice(
       smeWallet.circleWalletId,
       platformAddress,
       feeToProtocol,
-      "The fee transfer failed on-chain. The investor was already repaid; please retry to complete settlement."
+      "The fee transfer failed on-chain. The investor was already repaid; please retry to complete settlement.",
+      createIdempotencyKey(invoiceId, "SETTLE-FEE")
     )
   }
 
-  // Credit passport event for the SME (on-time settlement).
-  const last = await prisma.creditEvent.findFirst({
-    where: { userId: invoice.smeId },
-    orderBy: { createdAt: "desc" },
-  })
-  const base = last?.newScore ?? CREDIT_BASE_SCORE
-  await prisma.creditEvent.create({
-    data: {
-      userId: invoice.smeId,
-      type: "INVOICE_SETTLED_ON_TIME",
-      invoiceId,
-      scoreChange: SETTLE_SCORE_DELTA,
-      newScore: base + SETTLE_SCORE_DELTA,
-    },
+  // Finalize atomically: flip ACTIVE → SETTLED exactly once, and only the call
+  // that wins the transition writes the credit event — so a double-submit can't
+  // double-score the SME's passport.
+  const finalized = await prisma.$transaction(async (txdb) => {
+    const flip = await txdb.invoice.updateMany({
+      where: { id: invoiceId, status: "ACTIVE" },
+      data: { status: "SETTLED", settledAt: new Date() },
+    })
+    if (flip.count === 1) {
+      const last = await txdb.creditEvent.findFirst({
+        where: { userId: invoice.smeId },
+        orderBy: { createdAt: "desc" },
+      })
+      const base = last?.newScore ?? CREDIT_BASE_SCORE
+      await txdb.creditEvent.create({
+        data: {
+          userId: invoice.smeId,
+          type: "INVOICE_SETTLED_ON_TIME",
+          invoiceId,
+          scoreChange: SETTLE_SCORE_DELTA,
+          newScore: base + SETTLE_SCORE_DELTA,
+        },
+      })
+    }
+    return txdb.invoice.findUnique({
+      where: { id: invoiceId },
+      include: { sme: true, investor: true },
+    })
   })
 
-  return prisma.invoice.update({
-    where: { id: invoiceId },
-    data: { status: "SETTLED", settledAt: new Date() },
-    include: { sme: true, investor: true },
-  })
+  if (!finalized) throw new SettlementError("Invoice not found after settlement.")
+  return finalized
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { captureError } from "@/lib/observability"
 import { z } from "zod"
 import { sendEventToUser } from "@/lib/sse"
 import { runDemo, isDemoMode } from "@/lib/demo"
@@ -29,7 +30,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ data: result }, { status: 200 })
   } catch (error) {
-    console.error("[API /demo/run POST]", error)
+    captureError(error, { route: "API /demo/run POST" })
     return NextResponse.json(
       { error: "The demo run could not be completed." },
       { status: 500 }
