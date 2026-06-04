@@ -48,3 +48,6 @@ next-env.d.ts
 
 # KYC documents — private, server-only storage (never served statically)
 /private-uploads
+
+# Project blueprint — kept local, not published
+CLAUDE.md
