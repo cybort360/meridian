@@ -2,6 +2,7 @@ import { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
+import { authLimiter } from "@/lib/rateLimit"
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
@@ -14,6 +15,25 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
+        // Rate limit FIRST — this runs on every attempt, including wrong
+        // passwords, so it actually bounds brute force. (The signIn callback
+        // only fires after a correct password, far too late to help.) Keyed on
+        // the lowercased submitted email, so it can't be bypassed by rotating a
+        // spoofable source IP or by varying the email's casing. Fails open when
+        // Upstash isn't configured or Redis is unreachable, so a limiter outage
+        // never locks legitimate users out.
+        if (authLimiter) {
+          let allowed = true
+          try {
+            const email = (credentials?.email ?? "unknown").toLowerCase()
+            const { success } = await authLimiter.limit(`login:${email}`)
+            allowed = success
+          } catch {
+            allowed = true
+          }
+          if (!allowed) throw new Error("TooManyRequests")
+        }
+
         if (!credentials?.email || !credentials?.password) return null
 
         const user = await prisma.user.findUnique({

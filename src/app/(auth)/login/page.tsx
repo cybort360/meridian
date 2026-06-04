@@ -27,6 +27,8 @@ const inputBase = "bg-slate-800"
 const errorBorder = "border-red-500"
 const normalBorder = "border-slate-700"
 const CREDENTIALS_ERROR = "Incorrect email or password. Please try again."
+const RATE_LIMIT_ERROR =
+  "Too many login attempts. Please wait 15 minutes before trying again."
 
 export default function LoginPage() {
   const router = useRouter()
@@ -39,12 +41,11 @@ export default function LoginPage() {
 
   const disabled = loading || success
 
-  // Surface NextAuth's default ?error=CredentialsSignin redirect without a resubmit.
+  // Surface NextAuth redirect errors (?error=...) without a resubmit.
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    if (params.get("error") === "CredentialsSignin") {
-      setBanner(CREDENTIALS_ERROR)
-    }
+    const error = new URLSearchParams(window.location.search).get("error")
+    if (error === "CredentialsSignin") setBanner(CREDENTIALS_ERROR)
+    else if (error === "TooManyRequests") setBanner(RATE_LIMIT_ERROR)
   }, [])
 
   function fieldError(field: "email" | "password", value: string): string | undefined {
@@ -76,6 +77,15 @@ export default function LoginPage() {
         password: parsed.data.password,
         redirect: false,
       })
+
+      // Rate limited: authorize() throws Error("TooManyRequests"), which
+      // NextAuth surfaces as res.error. Check it before the generic credentials
+      // path so a throttled attempt shows the wait message, not "wrong password".
+      if (res?.error === "TooManyRequests") {
+        setLoading(false)
+        setBanner(RATE_LIMIT_ERROR)
+        return
+      }
 
       if (!res || res.error) {
         setLoading(false)
