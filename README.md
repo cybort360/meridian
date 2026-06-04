@@ -123,7 +123,7 @@ UAE SMEs represent 53% of national GDP but receive less than 5% of bank credit. 
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/meridian.git
+git clone https://github.com/cybort360/meridian.git
 cd meridian
 npm install
 ```
@@ -155,7 +155,7 @@ npx prisma generate
 Run this once to create your entity's wallet set on Arc testnet:
 
 ```bash
-npx ts-node scripts/setup-circle.ts
+npm run circle:setup
 ```
 
 Copy the printed `walletSetId` into your `.env.local` as `CIRCLE_WALLET_SET_ID`.
@@ -166,14 +166,16 @@ Copy the printed `walletSetId` into your `.env.local` as `CIRCLE_WALLET_SET_ID`.
 npx prisma db seed
 ```
 
-This creates two demo accounts:
+This creates four demo accounts — all with password `password123`:
 
-| Role | Email | Password |
+| Role | Email | Company |
 |---|---|---|
-| SME | `sme@gulfcargo.ae` | `demo1234` |
-| Investor | `investor@meridian.ae` | `demo1234` |
+| SME | `sme@meridian.test` | Gulf Cargo LLC |
+| SME | `sme2@meridian.test` | Desert Rose Trading FZE |
+| Investor | `investor@meridian.test` | Meridian Capital |
+| Admin | `admin@meridian.test` | — |
 
-And three pre-built freight invoices in various states (SCORED, ACTIVE, SETTLED).
+And eight pre-built invoices across the two verified SMEs in various states (6 SCORED in the marketplace, 1 ACTIVE, 1 SETTLED).
 
 ### 6. Run locally
 
