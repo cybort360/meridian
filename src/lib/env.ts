@@ -8,7 +8,7 @@ const required = [
   "CIRCLE_API_KEY",
   "CIRCLE_ENTITY_SECRET",
   "CIRCLE_WALLET_SET_ID",
-  "ANTHROPIC_API_KEY",
+  "DASHSCOPE_API_KEY",
 ] as const
 
 const PLACEHOLDER = "REPLACE_ME"

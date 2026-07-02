@@ -25,8 +25,8 @@ UAE SMEs represent 53% of national GDP but receive less than 5% of bank credit. 
 
 ## What Meridian Does
 
-1. **SME submits an invoice** — drag-and-drop a PDF, Claude AI auto-fills all fields in seconds
-2. **AI scores the risk** — Claude assesses the invoice, buyer, and SME track record; assigns a risk score (0–100) and advance rate (up to 90%)
+1. **SME submits an invoice** — drag-and-drop a PDF, Qwen AI auto-fills all fields in seconds
+2. **AI scores the risk** — Qwen assesses the invoice, buyer, and SME track record; assigns a risk score (0–100) and advance rate (up to 90%)
 3. **Buyer countersigns** — a magic-link email verifies the buyer acknowledges the debt, preventing fake invoice fraud
 4. **Investor funds from the marketplace** — USDC is disbursed to the SME via Circle Wallets in seconds, not days
 5. **Settlement waterfall executes automatically** — when the buyer pays, Circle Gateway routes: investor principal + yield returned, platform fee collected, all in USDC on Arc
@@ -42,7 +42,7 @@ UAE SMEs represent 53% of national GDP but receive less than 5% of bank credit. 
 ├───────────────────┬─────────────────────────┬───────────────────────┤
 │   NEXT.JS 14      │     CIRCLE STACK         │     AI LAYER          │
 │   (App Router)    │                          │                       │
-│                   │  • USDC (primary rail)   │  • Claude AI          │
+│                   │  • USDC (primary rail)   │  • Qwen (Alibaba)     │
 │  • TypeScript     │  • Circle Wallets        │    (invoice parsing)  │
 │  • Tailwind CSS   │    (SME + escrow accts)  │  • Risk scoring       │
 │  • Prisma ORM     │  • Circle Gateway        │  • Credit analysis    │
@@ -77,7 +77,7 @@ UAE SMEs represent 53% of national GDP but receive less than 5% of bank credit. 
 
 ## Key Features
 
-- **AI Invoice Parser** — PDF drop → Claude Vision extracts all fields automatically
+- **AI Invoice Parser** — PDF drop → text extraction → Qwen extracts all fields automatically
 - **Dual-signature fraud prevention** — buyer countersigns via email magic link before invoice can be funded
 - **KYB Verification** — UAE Trade License, Commercial Registration, document upload — full KYC flow with investor-visible "Verified Business" badge
 - **Real-time UI** — Circle webhook → SSE → wallet balances update live without page refresh
@@ -101,7 +101,7 @@ UAE SMEs represent 53% of national GDP but receive less than 5% of bank credit. 
 | ORM | Prisma 5 |
 | Auth | NextAuth.js (credentials) |
 | Blockchain | Circle Developer-Controlled Wallets on Arc Testnet |
-| AI | Claude claude-opus-4-8 via Anthropic SDK |
+| AI | Alibaba Qwen (qwen-max) via DashScope OpenAI-compatible API |
 | Real-time | Server-Sent Events (SSE) |
 | Charts | Recharts |
 | Animation | Framer Motion |
@@ -117,7 +117,7 @@ UAE SMEs represent 53% of national GDP but receive less than 5% of bank credit. 
 - Node.js 18+
 - PostgreSQL database (Supabase free tier recommended)
 - Circle developer account: [console.circle.com](https://console.circle.com)
-- Anthropic API key: [console.anthropic.com](https://console.anthropic.com)
+- Alibaba Cloud DashScope API key: [Model Studio](https://www.alibabacloud.com/help/en/model-studio/get-api-key)
 - Upstash Redis (free tier): [upstash.com](https://upstash.com)
 
 ### 1. Clone and install
@@ -229,7 +229,7 @@ meridian/
 │   ├── components/           # Reusable UI components
 │   ├── lib/
 │   │   ├── circle/           # Circle SDK wrappers
-│   │   ├── ai/               # Claude risk scoring
+│   │   ├── ai/               # Qwen risk scoring
 │   │   ├── utils/            # USDC math, formatting, validation
 │   │   └── rateLimit.ts      # Upstash rate limiters
 │   └── types/                # TypeScript type definitions
@@ -256,7 +256,7 @@ meridian/
 | POST | `/api/invoices/[id]/fund` | Investor funds invoice (atomic) |
 | POST | `/api/invoices/[id]/settle` | Trigger repayment waterfall |
 | POST | `/api/invoices/parse-pdf` | AI PDF invoice parser |
-| POST | `/api/ai/score` | Claude risk assessment |
+| POST | `/api/ai/score` | Qwen risk assessment |
 | POST | `/api/kyc/submit` | KYB verification submission |
 | POST | `/api/payments/cctp` | Cross-chain USDC transfer demo |
 | GET | `/api/sse` | Server-Sent Events for real-time updates |

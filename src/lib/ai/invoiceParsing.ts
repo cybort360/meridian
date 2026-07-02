@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { getAnthropicClient, isAIConfigured, PARSE_MODEL } from "./client"
+import { getQwenClient, isAIConfigured, PARSE_MODEL } from "./client"
 
 const parsedItemSchema = z.object({
   description: z.string().nullable(),
@@ -55,7 +55,7 @@ function normalizeDueDate(value: string | null): string | null {
 }
 
 // ─── Heuristic (no-AI) fallback ──────────────────────────────────────────────
-// Best-effort regex extraction so PDF upload still auto-fills when Anthropic
+// Best-effort regex extraction so PDF upload still auto-fills when Qwen
 // isn't configured (or the AI call fails). Missing fields are left null for the
 // user to complete.
 
@@ -138,7 +138,7 @@ export function heuristicParseInvoice(text: string): ParsedInvoice {
   }
 }
 
-// Returns parsed fields. Uses Claude when configured; otherwise (or if the AI
+// Returns parsed fields. Uses Qwen when configured; otherwise (or if the AI
 // call fails) falls back to a heuristic parse so PDF upload always works.
 export async function parseInvoiceText(
   rawText: string
@@ -148,23 +148,19 @@ export async function parseInvoiceText(
   }
 
   try {
-    const client = getAnthropicClient()
-    const response = await client.messages.create({
+    const client = getQwenClient()
+    const response = await client.chat.completions.create({
       model: PARSE_MODEL,
       max_tokens: 1024,
-      system: [
-        {
-          type: "text",
-          text: SYSTEM_PROMPT,
-          cache_control: { type: "ephemeral" },
-        },
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: buildUserPrompt(rawText) },
       ],
-      messages: [{ role: "user", content: buildUserPrompt(rawText) }],
     })
 
-    const textBlock = response.content.find((b) => b.type === "text")
-    const json =
-      textBlock && textBlock.type === "text" ? extractJson(textBlock.text) : null
+    const content = response.choices[0]?.message?.content
+    const json = content ? extractJson(content) : null
     if (!json) return heuristicParseInvoice(rawText)
 
     const candidate: unknown = JSON.parse(json)

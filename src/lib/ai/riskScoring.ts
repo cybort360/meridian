@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { getAnthropicClient, isAIConfigured, RISK_MODEL } from "./client"
+import { getQwenClient, isAIConfigured, RISK_MODEL } from "./client"
 
 export interface RiskScoringInput {
   invoiceAmount: number // In USD (human-readable)
@@ -85,24 +85,21 @@ export async function scoreInvoiceRisk(
   if (!isAIConfigured()) return DEFAULT_ASSESSMENT
 
   try {
-    const client = getAnthropicClient()
-    const response = await client.messages.create({
+    const client = getQwenClient()
+    const response = await client.chat.completions.create({
       model: RISK_MODEL,
       max_tokens: 1024,
-      system: [
-        {
-          type: "text",
-          text: SYSTEM_PROMPT,
-          cache_control: { type: "ephemeral" },
-        },
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: buildUserPrompt(input) },
       ],
-      messages: [{ role: "user", content: buildUserPrompt(input) }],
     })
 
-    const textBlock = response.content.find((b) => b.type === "text")
-    if (!textBlock || textBlock.type !== "text") return DEFAULT_ASSESSMENT
+    const content = response.choices[0]?.message?.content
+    if (!content) return DEFAULT_ASSESSMENT
 
-    const json = extractJson(textBlock.text)
+    const json = extractJson(content)
     if (!json) return DEFAULT_ASSESSMENT
 
     const parsed = riskAssessmentSchema.safeParse(JSON.parse(json))
