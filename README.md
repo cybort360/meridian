@@ -9,9 +9,9 @@
 
 ## Live Demo
 
-**App:** `https://meridian-finance.vercel.app` ← replace with your Vercel URL  
+**App:** https://meridian-sandy-sigma.vercel.app  
 **Demo video:** `https://loom.com/...` ← replace with your Loom link  
-**Demo autopilot:** Visit `/demo` on the live app — one click runs the full lifecycle
+**Demo autopilot:** Visit [`/demo`](https://meridian-sandy-sigma.vercel.app/demo) on the live app — one click runs the full lifecycle
 
 ---
 
