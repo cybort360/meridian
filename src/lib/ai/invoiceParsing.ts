@@ -1,14 +1,11 @@
 import { z } from "zod"
 import { getQwenClient, isAIConfigured, PARSE_MODEL } from "./client"
 
-const parsedItemSchema = z.object({
-  description: z.string().nullable(),
-  quantity: z.number().nullable(),
-  unitPrice: z.number().nullable(),
-})
-
-// Tolerate amounts the model returns as "$10,000.00" by stripping non-numerics.
-const amountUSD = z.preprocess((v) => {
+// Tolerate numbers the model returns as strings ("$10,000.00", "3 FTL") by
+// stripping non-numeric characters. Without this, a single stringy line-item
+// quantity fails validation and collapses the whole parse to the heuristic
+// fallback, losing the AI-extracted buyer email and due date.
+const looseNumber = z.preprocess((v) => {
   if (typeof v === "string") {
     const n = parseFloat(v.replace(/[^0-9.]/g, ""))
     return Number.isFinite(n) ? n : null
@@ -16,11 +13,17 @@ const amountUSD = z.preprocess((v) => {
   return v
 }, z.number().nullable())
 
+const parsedItemSchema = z.object({
+  description: z.string().nullable(),
+  quantity: looseNumber,
+  unitPrice: looseNumber,
+})
+
 export const parsedInvoiceSchema = z.object({
   invoiceNumber: z.string().nullable(),
   buyerName: z.string().nullable(),
   buyerEmail: z.string().nullable(),
-  amountUSD,
+  amountUSD: looseNumber,
   dueDate: z.string().nullable(),
   description: z.string().nullable(),
   items: z.array(parsedItemSchema).nullable(),
