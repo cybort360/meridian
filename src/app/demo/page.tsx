@@ -122,12 +122,12 @@ export default function DemoPage() {
   // Step 6 (credit passport) state - driven locally, not over SSE.
   const [passport, setPassport] = useState<StepStatus>("pending")
   const [score, setScore] = useState(PASSPORT_FROM)
-  const esRef = useRef<EventSource | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
   const scoreTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
     return () => {
-      esRef.current?.close()
+      abortRef.current?.abort()
       if (scoreTimerRef.current) clearInterval(scoreTimerRef.current)
     }
   }, [])
@@ -207,58 +207,74 @@ export default function DemoPage() {
     setError(null)
     setRunning(true)
 
-    const demoId =
-      typeof crypto !== "undefined" && crypto.randomUUID
-        ? crypto.randomUUID()
-        : String(Math.random()).slice(2)
+    void runStream()
+  }
 
-    const es = new EventSource(`/api/demo/events?id=${demoId}`)
-    esRef.current = es
-
-    es.onmessage = (e) => {
-      let evt: { type?: string; step?: number; data?: StepData; durationMs?: number }
-      try {
-        evt = JSON.parse(e.data)
-      } catch {
-        return
-      }
-      if (evt.type === "ping") return
-      if (evt.type === "connected") {
-        // Connection is live - kick off the run.
-        fetch("/api/demo/run", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ demoId }),
-        })
-          .then(async (res) => {
-            if (!res.ok) {
-              const j = await res.json().catch(() => ({}))
-              setError(j.error ?? "The demo run could not be started.")
-              setRunning(false)
-              es.close()
-            }
-          })
-          .catch(() => {
-            setError("The demo run could not be started.")
-            setRunning(false)
-            es.close()
-          })
-        return
-      }
-      if (evt.type === "demo_step" && typeof evt.step === "number") {
-        handleStep(evt.step, evt.data ?? {})
-        return
-      }
-      if (evt.type === "demo_complete") {
-        setDurationMs(evt.durationMs ?? null)
-        es.close()
-        // Hand off to the frontend-only passport step; it finishes the run.
-        runPassportStep()
-      }
+  // Handle a single parsed event from the run stream.
+  function handleEvent(evt: {
+    type?: string
+    step?: number
+    data?: StepData
+    durationMs?: number
+    error?: string
+  }) {
+    if (evt.type === "demo_step" && typeof evt.step === "number") {
+      handleStep(evt.step, evt.data ?? {})
+    } else if (evt.type === "demo_complete") {
+      setDurationMs(evt.durationMs ?? null)
+      // Hand off to the frontend-only passport step; it finishes the run.
+      runPassportStep()
+    } else if (evt.type === "demo_error") {
+      setError(evt.error ?? "The demo run could not be completed.")
+      setRunning(false)
     }
+  }
 
-    es.onerror = () => {
-      // EventSource auto-reconnects; surface an error only if nothing ran.
+  // POST the run and read demo_step frames straight off the response body. A
+  // single streaming invocation avoids the cross-process SSE delivery problem
+  // on serverless.
+  async function runStream() {
+    const controller = new AbortController()
+    abortRef.current = controller
+    try {
+      const res = await fetch("/api/demo/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+        signal: controller.signal,
+      })
+      if (!res.ok || !res.body) {
+        const j = await res.json().catch(() => ({}))
+        setError(j.error ?? "The demo run could not be started.")
+        setRunning(false)
+        return
+      }
+
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ""
+      for (;;) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        // Frames are separated by a blank line (SSE `data: {...}\n\n`).
+        let sep: number
+        while ((sep = buffer.indexOf("\n\n")) !== -1) {
+          const frame = buffer.slice(0, sep)
+          buffer = buffer.slice(sep + 2)
+          const line = frame.split("\n").find((l) => l.startsWith("data:"))
+          if (!line) continue
+          try {
+            handleEvent(JSON.parse(line.slice(5).trim()))
+          } catch {
+            // ignore malformed frame
+          }
+        }
+      }
+    } catch (err) {
+      if ((err as Error)?.name === "AbortError") return
+      setError("The demo run could not be started.")
+      setRunning(false)
     }
   }
 
