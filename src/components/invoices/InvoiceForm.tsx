@@ -15,6 +15,18 @@ import type { ParsedInvoice } from "@/lib/ai/invoiceParsing"
 const inputClass = "border-slate-700 bg-slate-800"
 const MAX_BYTES = 10 * 1024 * 1024 // 10MB
 
+// Build a short human title from parsed invoice data. Prefers the first line
+// item; falls back to the leading clause of the description. Trimmed to a
+// sensible length for the Title field.
+function deriveTitle(data: ParsedInvoice): string | null {
+  const source =
+    data.items?.find((i) => i.description)?.description ?? data.description ?? ""
+  // Take the first segment before a separator so we get a label, not a paragraph.
+  const first = source.split(/[.;\n]|\s—\s|\s-\s/)[0]?.trim() ?? ""
+  if (!first) return null
+  return first.length > 80 ? first.slice(0, 77).trimEnd() + "…" : first
+}
+
 export function InvoiceForm({
   onSuccess,
   onCancel,
@@ -56,6 +68,10 @@ export function InvoiceForm({
     }
     if (data.dueDate) setDueDate(data.dueDate)
     if (data.description) setDescription(data.description)
+    // A PDF invoice has no explicit "title" field, so derive a concise one from
+    // the first line item (or the description) to leave the form fully filled.
+    const derivedTitle = deriveTitle(data)
+    if (derivedTitle) setTitle(derivedTitle)
   }
 
   async function handleFile(file: File) {
