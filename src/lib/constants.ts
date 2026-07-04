@@ -29,7 +29,7 @@ export const NAV_ITEMS: NavItem[] = [
 
 // ─── Circle / Arc ───────────────────────────────────────────
 // Arc uses USDC as its native gas token, so EOA wallets work without
-// a separate gas asset — the faucet funds gas and USDC together.
+// a separate gas asset - the faucet funds gas and USDC together.
 export const CIRCLE_BLOCKCHAIN = "ARC-TESTNET"
 export const CIRCLE_ACCOUNT_TYPE = "EOA"
 

@@ -17,7 +17,7 @@ export function KycBanner({ status }: { status: KycStatus }) {
     PENDING_REVIEW: {
       icon: Clock,
       cls: "border-blue-500/30 bg-blue-950/60 text-blue-200",
-      text: "Verification in progress — we'll notify you when approved.",
+      text: "Verification in progress - we'll notify you when approved.",
       cta: "Check Status →",
     },
     REJECTED: {

@@ -8,7 +8,7 @@ import { CircleConfigError } from "@/lib/circle/client"
 import { enforceRateLimit, paymentLimiter } from "@/lib/rateLimit"
 import { captureError } from "@/lib/observability"
 
-// POST /api/invoices/[id]/settle — simulate buyer repayment + investor payout.
+// POST /api/invoices/[id]/settle - simulate buyer repayment + investor payout.
 // Settlement moves USDC OUT of the SME wallet, so only the SME may trigger it
 // ("Mark as repaid"). Allowing the investor here would let them pull funds from
 // the SME before the buyer has actually paid.

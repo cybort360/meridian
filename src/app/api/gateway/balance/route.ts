@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getUnifiedBalance } from "@/lib/circle/gateway"
 
-// GET /api/gateway/balance — the user's unified USDC balance across chains,
+// GET /api/gateway/balance - the user's unified USDC balance across chains,
 // read from the Gateway API for their wallet's depositor address.
 export async function GET() {
   try {

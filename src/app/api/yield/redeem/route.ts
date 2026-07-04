@@ -11,7 +11,7 @@ const RedeemSchema = z.object({
   positionId: z.string().min(1),
 })
 
-// POST /api/yield/redeem — pull a position back from USYC into USDC.
+// POST /api/yield/redeem - pull a position back from USYC into USDC.
 export async function POST(req: NextRequest) {
   try {
     const limited = await enforceRateLimit(req, apiLimiter)

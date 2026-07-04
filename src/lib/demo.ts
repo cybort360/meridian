@@ -8,8 +8,8 @@ import { isAIConfigured } from "@/lib/ai/client"
 import { toUSDCBaseUnits } from "@/lib/utils/usdc"
 import { CIRCLE_BLOCKCHAIN } from "@/lib/constants"
 
-// "Demo Autopilot" — runs the full Meridian lifecycle end-to-end for the demo
-// video. Steps 1–3 use the real Circle/AI services where available; if a real
+// "Demo Autopilot" - runs the full Meridian lifecycle end-to-end for the demo
+// video. Steps 1-3 use the real Circle/AI services where available; if a real
 // call isn't possible (unconfigured key, unfunded wallet), it falls back to a
 // clearly-scripted result so the recording never stalls. Funding/settlement are
 // advanced in the DB with deterministic values rather than on-chain transfers,
@@ -19,7 +19,7 @@ export type DemoEmit = (event: object) => void | Promise<void>
 
 // No credential is baked into the source. The demo accounts' password comes
 // from DEMO_ACCOUNT_PASSWORD; if unset, a strong random one is generated per
-// process (the autopilot runs server-side and never logs in — set the env var
+// process (the autopilot runs server-side and never logs in - set the env var
 // only if you want to sign in as the demo SME/investor to show the dashboard).
 const DEMO_PASSWORD =
   process.env.DEMO_ACCOUNT_PASSWORD?.trim() || randomBytes(18).toString("base64url")
@@ -106,7 +106,7 @@ export async function runDemo(emit: DemoEmit): Promise<{ durationMs: number }> {
     data: {
       smeId: sme.id,
       title: "Freight forwarding Dubai → Riyadh",
-      description: "Cross-border road freight — 3 FTL shipments of electronics.",
+      description: "Cross-border road freight - 3 FTL shipments of electronics.",
       buyerName: "Najm Distribution KSA",
       buyerEmail: "ap@najm-dist.example",
       amountUSDC,

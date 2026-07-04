@@ -27,7 +27,7 @@ export const riskAssessmentSchema = z.object({
 export type RiskAssessment = z.infer<typeof riskAssessmentSchema>
 
 // Neutral fallback used whenever AI scoring is unavailable or returns
-// something we can't trust. Never throws — the invoice still gets a score.
+// something we can't trust. Never throws - the invoice still gets a score.
 const DEFAULT_ASSESSMENT: RiskAssessment = {
   riskScore: 50,
   riskLabel: "MEDIUM",

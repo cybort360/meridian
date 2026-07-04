@@ -7,7 +7,7 @@ import { CircleConfigError } from "@/lib/circle/client"
 import { enforceRateLimit, paymentLimiter } from "@/lib/rateLimit"
 import { captureError } from "@/lib/observability"
 
-// POST /api/invoices/[id]/fund — an investor funds a scored invoice.
+// POST /api/invoices/[id]/fund - an investor funds a scored invoice.
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } }

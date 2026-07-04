@@ -12,7 +12,7 @@ import type { CircleTransactionState } from "@/types/circle"
  * Circle signs each notification with ECDSA: the signature is in the
  * `X-Circle-Signature` header and the signing public key id in
  * `X-Circle-Key-Id`. (CLAUDE.md §6.4 references an HMAC secret, but Circle's
- * actual mechanism is ECDSA public-key signing — we verify that way.)
+ * actual mechanism is ECDSA public-key signing - we verify that way.)
  *
  * Register this endpoint's public HTTPS URL under Webhooks in the Circle
  * console. Always returns 200 quickly so Circle doesn't retry.
@@ -121,11 +121,11 @@ export async function POST(req: NextRequest) {
             await sendEventToUser(wallet.userId, {
               type: "balance_update",
               walletId: wallet.circleWalletId,
-              newBalance: null, // advisory — the client re-fetches the balance
+              newBalance: null, // advisory - the client re-fetches the balance
             })
           }
 
-          // A settlement repays the investor — notify them specifically.
+          // A settlement repays the investor - notify them specifically.
           if (payment.type === "SETTLEMENT" && payment.invoice?.investorId) {
             await sendEventToUser(payment.invoice.investorId, {
               type: "payment_received",

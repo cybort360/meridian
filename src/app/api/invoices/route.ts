@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST /api/invoices — SME creates an invoice; AI scoring runs immediately.
+// POST /api/invoices - SME creates an invoice; AI scoring runs immediately.
 export async function POST(req: NextRequest) {
   try {
     const limited = await enforceRateLimit(req, apiLimiter)
@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
     })
 
     // Score now (sets risk fields). Status stays PENDING until the buyer
-    // countersigns via the verification email — only then is it listable.
+    // countersigns via the verification email - only then is it listable.
     const scored = await scoreAndPersist(created.id)
 
     // Send the buyer a verification (countersign) email. Non-fatal.

@@ -268,8 +268,8 @@ function NetworkSection() {
               ) : (
                 <span className="text-slate-500">
                   {hasWallet === false
-                    ? "No wallet yet — create one on the Wallet page."
-                    : "—"}
+                    ? "No wallet yet - create one on the Wallet page."
+                    : "-"}
                 </span>
               )
             }

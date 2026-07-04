@@ -87,7 +87,7 @@ function ArcAddressCard({
           </div>
         ) : (
           <p className="text-sm text-slate-500">
-            No wallet yet — create one on the Wallet page.
+            No wallet yet - create one on the Wallet page.
           </p>
         )}
         <p className="mt-2 text-xs text-slate-600">{blockchain}</p>
@@ -128,7 +128,7 @@ export default function PassportPage() {
                   ✓ Verified Business · UAE Trade License Confirmed
                 </p>
                 <p className="truncate text-sm text-slate-400">
-                  {passport.kyc.businessName ?? "—"}
+                  {passport.kyc.businessName ?? "-"}
                   {passport.kyc.tradeLicenseMasked
                     ? ` · License ${passport.kyc.tradeLicenseMasked}`
                     : ""}
@@ -159,13 +159,13 @@ export default function PassportPage() {
               <Stat label="On-Time Rate">
                 <p className="font-mono text-2xl font-semibold text-emerald-400">
                   {passport.onTimeRate === null
-                    ? "—"
+                    ? "-"
                     : `${passport.onTimeRate}%`}
                 </p>
               </Stat>
               <Stat label="Avg Days to Settle">
                 <p className="font-mono text-2xl font-semibold text-slate-100">
-                  {passport.avgDaysToSettle ?? "—"}
+                  {passport.avgDaysToSettle ?? "-"}
                 </p>
               </Stat>
               <Stat label="Active Invoices">

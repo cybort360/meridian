@@ -13,7 +13,7 @@ const DepositSchema = z.object({
   amount: z.number().positive().max(10_000_000),
 })
 
-// POST /api/gateway/deposit — deposit USDC from the Arc wallet into the Gateway
+// POST /api/gateway/deposit - deposit USDC from the Arc wallet into the Gateway
 // Wallet contract, funding the unified balance.
 export async function POST(req: NextRequest) {
   try {

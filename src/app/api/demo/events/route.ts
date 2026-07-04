@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic"
 
 const HEARTBEAT_MS = 30_000
 
-// GET /api/demo/events?id=<demoId> — unauthenticated SSE stream for the Demo
+// GET /api/demo/events?id=<demoId> - unauthenticated SSE stream for the Demo
 // Autopilot. The /demo page opens this, then POSTs /api/demo/run with the same
 // id; run() pushes demo_step events to this channel via sendEventToUser.
 export async function GET(req: NextRequest) {

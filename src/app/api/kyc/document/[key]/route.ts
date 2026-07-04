@@ -14,7 +14,7 @@ import {
 
 export const runtime = "nodejs"
 
-// GET /api/kyc/document/[key] — streams a KYC document only to its owner or an
+// GET /api/kyc/document/[key] - streams a KYC document only to its owner or an
 // admin reviewer. PII is never exposed via a static/public path.
 export async function GET(
   _req: NextRequest,

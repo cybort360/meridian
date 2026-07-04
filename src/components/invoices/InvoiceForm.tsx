@@ -22,7 +22,7 @@ function deriveTitle(data: ParsedInvoice): string | null {
   const source =
     data.items?.find((i) => i.description)?.description ?? data.description ?? ""
   // Take the first segment before a separator so we get a label, not a paragraph.
-  const first = source.split(/[.;\n]|\s—\s|\s-\s/)[0]?.trim() ?? ""
+  const first = source.split(/[.;:\n]|\s-\s/)[0]?.trim() ?? ""
   if (!first) return null
   return first.length > 80 ? first.slice(0, 77).trimEnd() + "…" : first
 }
@@ -45,7 +45,7 @@ export function InvoiceForm({
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  // PDF parsing (optional — the form works fully without it).
+  // PDF parsing (optional - the form works fully without it).
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [parsing, setParsing] = useState(false)
   const [parseError, setParseError] = useState<string | null>(null)
@@ -81,7 +81,7 @@ export function InvoiceForm({
     const isPdf =
       file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")
     if (!isPdf) {
-      setParseError("Could not read PDF — please fill in manually")
+      setParseError("Could not read PDF - please fill in manually")
       return
     }
     if (file.size > MAX_BYTES) {
@@ -103,14 +103,14 @@ export function InvoiceForm({
         setParseError(
           res.status === 413
             ? (json.error ?? "PDF is too large. Maximum size is 10MB.")
-            : "Could not read PDF — please fill in manually"
+            : "Could not read PDF - please fill in manually"
         )
         return
       }
       applyParsed(json.data as ParsedInvoice)
       setParsed(true)
     } catch {
-      setParseError("Could not read PDF — please fill in manually")
+      setParseError("Could not read PDF - please fill in manually")
     } finally {
       setParsing(false)
     }
@@ -197,7 +197,7 @@ export function InvoiceForm({
           className="hidden"
           // The input is a child of the clickable dropzone. Calling .click()
           // dispatches a synthetic click that bubbles back to the div's
-          // onClick, which calls .click() again — a re-entrant loop Chrome
+          // onClick, which calls .click() again - a re-entrant loop Chrome
           // blocks (the file picker silently never opens). Stop the bubble.
           onClick={(e) => e.stopPropagation()}
           onChange={(e) => {
@@ -219,7 +219,7 @@ export function InvoiceForm({
             </p>
             <p className="flex items-center gap-1 text-xs text-slate-500">
               <FileText className="h-3 w-3" />
-              PDF up to 10MB — fields auto-fill for you to review
+              PDF up to 10MB - fields auto-fill for you to review
             </p>
           </>
         )}
@@ -230,7 +230,7 @@ export function InvoiceForm({
       {parsed && (
         <div className="flex items-center gap-2 rounded-lg border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-sm text-emerald-300">
           <CheckCircle2 className="h-4 w-4 shrink-0" />
-          Invoice parsed — please review and confirm the details
+          Invoice parsed - please review and confirm the details
         </div>
       )}
 

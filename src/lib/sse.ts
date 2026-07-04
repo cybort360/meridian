@@ -5,7 +5,7 @@
 // Next.js can instantiate this module more than once (a separate copy is
 // bundled into each route that imports it), which would give the SSE route and
 // the webhook *different* Maps. To guarantee they share one registry, the Map
-// is pinned to globalThis — the same singleton trick used for the Prisma client.
+// is pinned to globalThis - the same singleton trick used for the Prisma client.
 //
 // Delivery only works when the SSE connection and the event producer run in the
 // same Node process (true for a long-running server / local dev; not across

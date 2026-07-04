@@ -69,7 +69,7 @@ async function moveUSDC(
 
 // Investor funds a SCORED invoice: a single direct transfer of the advance from
 // the investor wallet to the SME wallet. Records one ADVANCE payment and moves
-// the invoice to ACTIVE. (Single transfer ⇒ inherently atomic — it either lands
+// the invoice to ACTIVE. (Single transfer ⇒ inherently atomic - it either lands
 // or it doesn't; nothing is left stranded.)
 export async function fundInvoice(
   invoiceId: string,
@@ -109,7 +109,7 @@ export async function fundInvoice(
 
   // Atomic claim: flip SCORED → FUNDED only while it's still SCORED. A rapid
   // double-submit makes the second update affect 0 rows, so only one request
-  // ever proceeds to move money. (This is what prevents a double-fund — we do
+  // ever proceeds to move money. (This is what prevents a double-fund - we do
   // it before the transfer, not inside a DB transaction wrapped around the
   // multi-second Circle poll, which would exhaust a pooled connection.)
   const claim = await prisma.invoice.updateMany({
@@ -166,7 +166,7 @@ export async function fundInvoice(
       })
     })
   } catch (error) {
-    // Roll the claim back so the invoice is fundable again — but only if it's
+    // Roll the claim back so the invoice is fundable again - but only if it's
     // still FUNDED (i.e. we never reached ACTIVE). A successful run won't match.
     await prisma.invoice.updateMany({
       where: { id: invoiceId, status: "FUNDED" },
@@ -180,7 +180,7 @@ export async function fundInvoice(
 // their principal and the platform its fee, both as direct transfers:
 //   SME → investor   (principal = advance; type SETTLEMENT)
 //   SME → platform   (protocol fee; type FEE)
-// The SME retains the remainder (invoice − advance − fee) — no escrow round-trip.
+// The SME retains the remainder (invoice − advance − fee) - no escrow round-trip.
 // Records both payments, writes an on-time CreditEvent, and moves the invoice to
 // SETTLED. Payments are written as each leg confirms, so a partial failure
 // leaves an audit trail and the invoice stays ACTIVE (retryable) rather than
@@ -262,7 +262,7 @@ export async function settleInvoice(
   }
 
   // Finalize atomically: flip ACTIVE → SETTLED exactly once, and only the call
-  // that wins the transition writes the credit event — so a double-submit can't
+  // that wins the transition writes the credit event - so a double-submit can't
   // double-score the SME's passport.
   const finalized = await prisma.$transaction(async (txdb) => {
     const flip = await txdb.invoice.updateMany({

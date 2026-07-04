@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { computeCreditScore } from "@/lib/utils/creditScore"
 
-// GET /api/passport — on-chain credit identity for the current user (as SME).
+// GET /api/passport - on-chain credit identity for the current user (as SME).
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)

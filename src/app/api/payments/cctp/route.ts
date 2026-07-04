@@ -11,7 +11,7 @@ const cctpSchema = z.object({
   destinationChain: z.enum(CCTP_DESTINATIONS).optional(),
 })
 
-// POST /api/payments/cctp — bridge USDC from Arc to another testnet chain.
+// POST /api/payments/cctp - bridge USDC from Arc to another testnet chain.
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions)

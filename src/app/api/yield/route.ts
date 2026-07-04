@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth"
 import { getYieldSummary } from "@/lib/circle/usyc"
 import { CircleConfigError } from "@/lib/circle/client"
 
-// GET /api/yield — the investor's active USYC yield positions + totals.
+// GET /api/yield - the investor's active USYC yield positions + totals.
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)

@@ -44,7 +44,7 @@ export function YieldPanel() {
     else setAmount("")
   }
 
-  const apyPct = summary ? (summary.apyBps / 100).toFixed(2) : "—"
+  const apyPct = summary ? (summary.apyBps / 100).toFixed(2) : "-"
 
   return (
     <Card className="border-slate-800 bg-slate-900 text-slate-100">

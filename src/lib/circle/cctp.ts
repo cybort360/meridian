@@ -63,7 +63,7 @@ export async function bridgeUSDCFromArc(params: {
 }): Promise<CctpResult> {
   const destinationChain = params.destinationChain ?? CCTP_DEFAULT_DESTINATION
 
-  // If Circle isn't configured, there's no real path — return the mock.
+  // If Circle isn't configured, there's no real path - return the mock.
   if (!isCircleConfigured()) {
     return mockResult(params.amount, destinationChain, "Circle not configured")
   }

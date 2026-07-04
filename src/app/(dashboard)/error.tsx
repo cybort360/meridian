@@ -4,7 +4,7 @@ import { useEffect } from "react"
 import { AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-// Route-segment error boundary for all dashboard pages — prevents a thrown
+// Route-segment error boundary for all dashboard pages - prevents a thrown
 // render error from blanking the whole app.
 export default function DashboardError({
   error,

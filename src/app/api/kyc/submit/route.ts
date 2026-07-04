@@ -28,7 +28,7 @@ async function ownsDocument(url: string | undefined, userId: string): Promise<bo
   }
 }
 
-// POST /api/kyc/submit — SME submits business details + document URLs.
+// POST /api/kyc/submit - SME submits business details + document URLs.
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     const d = parsed.data
     const userId = session.user.id
 
-    // Verify document ownership — reject references to files this user doesn't own.
+    // Verify document ownership - reject references to files this user doesn't own.
     const tradeOk = await ownsDocument(d.tradeLicenseDocUrl, userId)
     const ownerOk = await ownsDocument(d.ownerIdDocUrl, userId)
     const proofOk = !d.proofOfAddressUrl || (await ownsDocument(d.proofOfAddressUrl, userId))
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Strip any markup from free-text fields before persisting — these render in
+    // Strip any markup from free-text fields before persisting - these render in
     // the admin review screen, and legalBusinessName becomes the user's public
     // companyName shown to investors, so an unsanitized value is a stored-XSS path.
     const legalBusinessName = sanitizeText(d.legalBusinessName)
@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
       update: { ...data, submittedAt: new Date() },
     })
     // Bind the user's displayed identity to the verified KYB record, so the
-    // company name investors see is the legal business name under review — not
+    // company name investors see is the legal business name under review - not
     // an arbitrary free-text value. These fields lock once review starts.
     await prisma.user.update({
       where: { id: userId },

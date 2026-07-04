@@ -4,7 +4,7 @@ import { Redis } from "@upstash/redis"
 
 // Rate limiting is backed by Upstash Redis. When the credentials aren't set
 // (local dev, or before you provision Upstash), the limiters are disabled and
-// every request is allowed — the app stays fully functional, it just isn't
+// every request is allowed - the app stays fully functional, it just isn't
 // throttled. Configure UPSTASH_REDIS_REST_URL / _TOKEN to turn it on.
 const configured =
   !!process.env.UPSTASH_REDIS_REST_URL && !!process.env.UPSTASH_REDIS_REST_TOKEN
@@ -38,12 +38,12 @@ export const apiLimiter = makeLimiter(
 
 export function clientIp(req: Request): string {
   // On Vercel, x-vercel-forwarded-for is set by the platform and cannot be
-  // spoofed by the client — use it first.
+  // spoofed by the client - use it first.
   const vercelIp = req.headers.get("x-vercel-forwarded-for")
   if (vercelIp) return vercelIp.split(",")[0].trim()
 
-  // Fallback for local dev and other platforms. Use the RIGHTMOST entry — the
-  // last hop appended by a trusted proxy — rather than the leftmost, which is
+  // Fallback for local dev and other platforms. Use the RIGHTMOST entry - the
+  // last hop appended by a trusted proxy - rather than the leftmost, which is
   // attacker-controlled in most configurations.
   const forwarded = req.headers.get("x-forwarded-for")
   if (forwarded) return forwarded.split(",").at(-1)!.trim()

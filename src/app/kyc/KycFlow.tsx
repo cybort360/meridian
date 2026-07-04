@@ -581,7 +581,7 @@ export function KycFlow({ initialStatus }: { initialStatus: KycStatus }) {
                     ["Commercial reg #", biz.commercialRegNumber],
                     ["Industry", biz.industry],
                     ["Phone", biz.phoneNumber],
-                    ["Website", biz.websiteUrl || "—"],
+                    ["Website", biz.websiteUrl || "-"],
                     ["Address", biz.businessAddress],
                     ["City", biz.city],
                   ].map(([label, value]) => (
@@ -656,7 +656,7 @@ export function KycFlow({ initialStatus }: { initialStatus: KycStatus }) {
             </h1>
             <p className="mt-2 max-w-md text-slate-400">
               We&apos;re reviewing your business details. This usually takes
-              24–48 hours.
+              24-48 hours.
             </p>
             {IS_DEMO && (
               <p className="mt-3 max-w-md text-sm text-emerald-400">

@@ -11,7 +11,7 @@ export const maxDuration = 60
 
 const RunSchema = z.object({ demoId: z.string().min(1) })
 
-// POST /api/demo/run — drives the full Meridian lifecycle, emitting a demo_step
+// POST /api/demo/run - drives the full Meridian lifecycle, emitting a demo_step
 // event after each step to the SSE channel keyed by demoId.
 export async function POST(req: NextRequest) {
   try {

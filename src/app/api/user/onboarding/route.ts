@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
-// PATCH /api/user/onboarding — mark the one-time onboarding as seen.
+// PATCH /api/user/onboarding - mark the one-time onboarding as seen.
 export async function PATCH() {
   try {
     const session = await getServerSession(authOptions)

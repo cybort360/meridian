@@ -6,12 +6,12 @@ import { extractPdfText } from "@/lib/utils/pdf"
 import { parseInvoiceText } from "@/lib/ai/invoiceParsing"
 import { AIConfigError } from "@/lib/ai/client"
 
-// PDF text extraction needs Node APIs — opt out of the Edge runtime.
+// PDF text extraction needs Node APIs - opt out of the Edge runtime.
 export const runtime = "nodejs"
 
 const MAX_BYTES = 10 * 1024 * 1024 // 10MB
 
-// POST /api/invoices/parse-pdf — extract invoice fields from an uploaded PDF.
+// POST /api/invoices/parse-pdf - extract invoice fields from an uploaded PDF.
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions)

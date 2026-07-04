@@ -49,7 +49,7 @@ function row(...cells: Array<string | number>): string {
 
 // Builds a bank-statement-style CSV for the selected month: an account block, a
 // summary section, then the transaction ledger with a totals row. Returns the
-// full CSV text. Replaces the old PDF export (jsPDF) — CSV streams reliably and
+// full CSV text. Replaces the old PDF export (jsPDF) - CSV streams reliably and
 // opens straight into any spreadsheet.
 export function buildStatementCsv(input: StatementInput): string {
   const { account, stats: s, secondary: sec } = input
@@ -62,7 +62,7 @@ export function buildStatementCsv(input: StatementInput): string {
   lines.push(row("Account", account.companyName ?? account.name))
   lines.push(row("Name", account.name))
   lines.push(row("Role", account.role))
-  lines.push(row("Wallet", account.walletAddress ?? "—"))
+  lines.push(row("Wallet", account.walletAddress ?? "-"))
   lines.push(row("Network", "Arc testnet (USDC)"))
   lines.push("")
 
@@ -75,11 +75,11 @@ export function buildStatementCsv(input: StatementInput): string {
   lines.push(
     row(
       "Avg Settlement (days)",
-      s.avgSettlementDays === null ? "—" : s.avgSettlementDays.toFixed(1)
+      s.avgSettlementDays === null ? "-" : s.avgSettlementDays.toFixed(1)
     )
   )
   lines.push(
-    row("On-Time Rate (%)", s.onTimeRate === null ? "—" : s.onTimeRate)
+    row("On-Time Rate (%)", s.onTimeRate === null ? "-" : s.onTimeRate)
   )
   lines.push(row("Paid Invoices", sec.paid.count))
   lines.push(row("Paid Amount (USDC)", money(sec.paid.amount)))

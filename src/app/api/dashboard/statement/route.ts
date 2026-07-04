@@ -24,7 +24,7 @@ function resolveWindow(monthParam: string | null): { start: Date; ref: Date } {
   return { start: new Date(now.getFullYear(), now.getMonth(), 1), ref: now }
 }
 
-// GET /api/dashboard/statement?month=YYYY-MM — streams a formatted CSV bank
+// GET /api/dashboard/statement?month=YYYY-MM - streams a formatted CSV bank
 // statement for the selected month. Returned with a Content-Disposition header
 // so the browser saves it with the right filename + .csv extension (a
 // client-side blob download drops the name when triggered after an await).

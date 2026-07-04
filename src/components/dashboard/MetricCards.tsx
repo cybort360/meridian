@@ -8,7 +8,7 @@ import { USDCAmount } from "@/components/shared/USDCAmount"
 import { cn } from "@/lib/utils"
 import type { DashboardStats } from "@/hooks/useDashboard"
 
-// Big metric number: full size when a card is wide (1–2 up), steps down at the
+// Big metric number: full size when a card is wide (1-2 up), steps down at the
 // cramped 4-up `lg` width, then back up once `xl` gives the cards room again.
 const NUM = "text-3xl lg:text-2xl xl:text-3xl"
 
@@ -69,7 +69,7 @@ export function MetricCards({ stats }: { stats: DashboardStats }) {
       value: (
         <span className={cn("font-mono font-semibold text-slate-100", NUM)}>
           {stats.avgSettlementDays === null ? (
-            "—"
+            "-"
           ) : (
             <>
               {stats.avgSettlementDays.toFixed(1)}
@@ -87,7 +87,7 @@ export function MetricCards({ stats }: { stats: DashboardStats }) {
       icon: ShieldCheck,
       value: (
         <span className={cn("font-mono font-semibold text-slate-100", NUM)}>
-          {stats.onTimeRate === null ? "—" : `${stats.onTimeRate}%`}
+          {stats.onTimeRate === null ? "-" : `${stats.onTimeRate}%`}
         </span>
       ),
       sub: (

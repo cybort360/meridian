@@ -57,7 +57,7 @@ function resolveWindow(monthParam: string | null): {
   return { ref: now, monthStart, lastMonthStart }
 }
 
-// GET /api/dashboard?month=YYYY-MM — Finance Hub metrics as of the selected
+// GET /api/dashboard?month=YYYY-MM - Finance Hub metrics as of the selected
 // month (defaults to the current month).
 export async function GET(req: NextRequest) {
   try {

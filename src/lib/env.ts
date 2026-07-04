@@ -14,7 +14,7 @@ const required = [
 const PLACEHOLDER = "REPLACE_ME"
 
 export function validateEnv(): void {
-  // Skip during the build phase — secrets aren't (and needn't be) present then;
+  // Skip during the build phase - secrets aren't (and needn't be) present then;
   // we validate at runtime so a misconfigured deploy crashes loudly on boot.
   if (process.env.NEXT_PHASE === "phase-production-build") return
 

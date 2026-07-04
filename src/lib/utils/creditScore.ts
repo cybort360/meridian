@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma"
 
-// FICO-like scale: start at 500, apply each CreditEvent delta, clamp 300–850.
+// FICO-like scale: start at 500, apply each CreditEvent delta, clamp 300-850.
 export const BASE_SCORE = 500
 export const MIN_SCORE = 300
 export const MAX_SCORE = 850

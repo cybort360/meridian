@@ -17,7 +17,7 @@ const FEATURES = [
   {
     icon: Globe,
     title: "On-chain settlement",
-    body: "Repayments route automatically in USDC on Arc — verifiable, borderless, and fast.",
+    body: "Repayments route automatically in USDC on Arc - verifiable, borderless, and fast.",
   },
 ]
 

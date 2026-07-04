@@ -1,4 +1,4 @@
-// Next.js instrumentation hook — runs once on server startup. Initialises
+// Next.js instrumentation hook - runs once on server startup. Initialises
 // Sentry only when SENTRY_DSN is set, so without a DSN the app carries zero
 // monitoring overhead and makes no network calls.
 export async function register() {

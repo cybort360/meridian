@@ -16,7 +16,7 @@ export interface Invoice {
   description?: string
   buyerName: string
   buyerEmail: string
-  amountUSDC: bigint // Always bigint — never number for amounts
+  amountUSDC: bigint // Always bigint - never number for amounts
   dueDate: string // ISO string
   invoiceNumber: string
   status: InvoiceStatus

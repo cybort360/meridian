@@ -29,7 +29,7 @@ const STEPS: Step[] = [
     icon: Zap,
     title: "Access liquidity",
     description:
-      "Get up to 90% of your invoice value in USDC — instantly, not in 90 days.",
+      "Get up to 90% of your invoice value in USDC - instantly, not in 90 days.",
   },
   {
     icon: ShieldCheck,
@@ -50,7 +50,7 @@ export function OnboardingView() {
     try {
       await fetch("/api/user/onboarding", { method: "PATCH" })
     } catch {
-      // non-fatal — proceed to the dashboard anyway
+      // non-fatal - proceed to the dashboard anyway
     }
     router.push("/dashboard")
     router.refresh()
@@ -58,7 +58,7 @@ export function OnboardingView() {
 
   return (
     <div className="flex min-h-screen flex-col items-center bg-slate-950 px-6 py-10 text-slate-100">
-      {/* Skip — top-right */}
+      {/* Skip - top-right */}
       <div className="flex w-full max-w-xl items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gold">
@@ -81,7 +81,7 @@ export function OnboardingView() {
           How Meridian works
         </h1>
         <p className="mt-3 text-slate-400">
-          Three steps turn an unpaid invoice into capital today — and credit for
+          Three steps turn an unpaid invoice into capital today - and credit for
           tomorrow.
         </p>
 

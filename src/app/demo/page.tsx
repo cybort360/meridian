@@ -28,7 +28,7 @@ interface StepView {
 const STEP_COUNT = 5
 
 // Step 6 ("Credit Passport updated") is a frontend-only flourish that runs after
-// the backend's demo_complete — it animates a credit-score counter rather than
+// the backend's demo_complete - it animates a credit-score counter rather than
 // reflecting a new SSE event.
 const PASSPORT_FROM = 540
 const PASSPORT_TO = 556
@@ -81,24 +81,24 @@ function stepLabel(step: number, data: StepData | null): string {
   switch (step) {
     case 1:
       return data
-        ? `SME onboarded — wallet ${truncate(data.address)} created`
+        ? `SME onboarded - wallet ${truncate(data.address)} created`
         : "SME onboarded + wallet created"
     case 2:
       return data
-        ? `Invoice submitted — Freight forwarding Dubai → Riyadh, ${usd(data.amountUSDC)}`
-        : "Invoice submitted — Freight forwarding Dubai → Riyadh"
+        ? `Invoice submitted - Freight forwarding Dubai → Riyadh, ${usd(data.amountUSDC)}`
+        : "Invoice submitted - Freight forwarding Dubai → Riyadh"
     case 3:
       return data
         ? `AI risk engine scored → ${data.riskLabel} RISK, ${data.advanceRate}% advance rate`
         : "AI risk engine scoring…"
     case 4:
       return data
-        ? `Investor funded — ${usd(data.advanceUSDC)} USDC disbursed to SME`
+        ? `Investor funded - ${usd(data.advanceUSDC)} USDC disbursed to SME`
         : "Investor funds the invoice"
     case 5:
       return data
-        ? `Invoice settled — investor repaid ${usd(data.repaidUSDC)} USDC`
-        : "Invoice settled — investor repaid"
+        ? `Invoice settled - investor repaid ${usd(data.repaidUSDC)} USDC`
+        : "Invoice settled - investor repaid"
     default:
       return ""
   }
@@ -119,7 +119,7 @@ export default function DemoPage() {
   const [done, setDone] = useState(false)
   const [durationMs, setDurationMs] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
-  // Step 6 (credit passport) state — driven locally, not over SSE.
+  // Step 6 (credit passport) state - driven locally, not over SSE.
   const [passport, setPassport] = useState<StepStatus>("pending")
   const [score, setScore] = useState(PASSPORT_FROM)
   const esRef = useRef<EventSource | null>(null)
@@ -224,7 +224,7 @@ export default function DemoPage() {
       }
       if (evt.type === "ping") return
       if (evt.type === "connected") {
-        // Connection is live — kick off the run.
+        // Connection is live - kick off the run.
         fetch("/api/demo/run", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -280,7 +280,7 @@ export default function DemoPage() {
         </h1>
         <p className="mt-3 text-slate-400">
           Watch an invoice go from upload to AI scoring to funding to on-chain
-          settlement — live.
+          settlement - live.
         </p>
 
         {!running && !done && (
@@ -349,7 +349,7 @@ export default function DemoPage() {
             </motion.li>
           ))}
 
-          {/* Step 6 — credit passport (frontend-animated). */}
+          {/* Step 6 - credit passport (frontend-animated). */}
           <motion.li
             key="passport"
             initial={{ opacity: 0, y: 8 }}

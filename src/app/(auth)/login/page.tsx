@@ -98,7 +98,7 @@ export default function LoginPage() {
         return
       }
 
-      // Success — hold a brief confirmation state before redirecting.
+      // Success - hold a brief confirmation state before redirecting.
       setLoading(false)
       setSuccess(true)
       setTimeout(() => {
@@ -185,7 +185,7 @@ export default function LoginPage() {
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {success && <CheckCircle2 className="mr-2 h-4 w-4" />}
             {success
-              ? "Logged in — loading your dashboard"
+              ? "Logged in - loading your dashboard"
               : loading
                 ? "Signing in..."
                 : "Sign in"}

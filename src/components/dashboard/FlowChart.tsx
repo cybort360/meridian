@@ -125,12 +125,12 @@ export function FlowChart({
           <span>
             {healthy ? (
               <>
-                <span className="font-medium">Healthy Portfolio</span> —
+                <span className="font-medium">Healthy Portfolio</span> -
                 repayment rate above benchmark
               </>
             ) : (
               <>
-                <span className="font-medium">Review required</span> — repayment
+                <span className="font-medium">Review required</span> - repayment
                 rate below benchmark
               </>
             )}

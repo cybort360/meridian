@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
-// GET /api/kyc/status — current user's KYC status + submission (if any).
+// GET /api/kyc/status - current user's KYC status + submission (if any).
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)

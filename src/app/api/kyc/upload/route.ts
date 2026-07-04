@@ -18,7 +18,7 @@ const ALLOWED: Record<string, string> = {
   "image/png": "png",
 }
 
-// POST /api/kyc/upload — stores a single KYC document privately and returns an
+// POST /api/kyc/upload - stores a single KYC document privately and returns an
 // authenticated URL. Documents are never written under /public.
 export async function POST(req: NextRequest) {
   try {

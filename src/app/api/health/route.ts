@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
 
-// GET /api/health — liveness + DB connectivity probe for uptime monitors and
+// GET /api/health - liveness + DB connectivity probe for uptime monitors and
 // deploy checks. 200 when the database answers, 503 otherwise.
 export async function GET() {
   try {

@@ -22,7 +22,7 @@ export interface GatewayDepositResult {
 // Deposits USDC from a Circle wallet on Arc into the Gateway Wallet contract,
 // funding the user's unified USDC balance. Two on-chain steps: approve the
 // Gateway Wallet to pull the USDC, then call deposit(token, amount). Driven
-// through Circle's contract-execution API — no Solidity, no deployed contracts
+// through Circle's contract-execution API - no Solidity, no deployed contracts
 // of our own. https://developers.circle.com/gateway
 export async function depositToGateway(
   circleWalletId: string,
@@ -113,7 +113,7 @@ export async function getUnifiedBalance(
     return acc + BigInt(whole) * 1_000_000n + BigInt(frac6 || "0")
   }, 0n)
 
-  // Only surface domains that actually hold a balance — the API returns a row
+  // Only surface domains that actually hold a balance - the API returns a row
   // per supported chain (mostly zeros), which otherwise reads as "12 chains
   // contributing" even when the funds sit on one chain.
   const contributing = rows.filter((r) => {

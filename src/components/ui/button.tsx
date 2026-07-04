@@ -9,15 +9,15 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // Primary — gold
+        // Primary - gold
         default: "bg-gold text-[#0C0D13] hover:bg-gold-bright",
         // Danger
         destructive:
           "border border-red-900 bg-transparent text-red-400 hover:bg-red-950/30",
-        // Secondary — outline
+        // Secondary - outline
         outline:
           "border border-[rgba(255,255,255,0.12)] bg-transparent text-ink-50 hover:bg-elevated",
-        // Tertiary — filled elevated
+        // Tertiary - filled elevated
         secondary: "bg-elevated text-ink-50 hover:bg-[#1A1B24]",
         // Ghost
         ghost: "bg-elevated text-ink-200 hover:bg-[#1A1B24] hover:text-ink-50",

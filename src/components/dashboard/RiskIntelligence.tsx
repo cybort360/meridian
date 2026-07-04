@@ -6,7 +6,7 @@ import { Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { PortfolioRisk } from "@/hooks/useDashboard"
 
-// Risk score is 0–100, higher = riskier.
+// Risk score is 0-100, higher = riskier.
 function barColor(score: number): string {
   if (score < 34) return "bg-emerald-400"
   if (score < 67) return "bg-amber-400"
@@ -66,7 +66,7 @@ export function RiskIntelligence({ risk }: { risk: PortfolioRisk }) {
             Average risk score
           </span>
           <span className="font-mono text-lg font-semibold">
-            {risk.avgScore === null ? "—" : risk.avgScore}
+            {risk.avgScore === null ? "-" : risk.avgScore}
             <span className="text-xs text-indigo-300/60"> / 100</span>
           </span>
         </div>

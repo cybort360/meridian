@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
-// POST /api/kyc/approve/[userId] — admin approves a pending submission.
+// POST /api/kyc/approve/[userId] - admin approves a pending submission.
 export async function POST(
   _req: NextRequest,
   { params }: { params: { userId: string } }

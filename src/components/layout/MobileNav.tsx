@@ -6,7 +6,7 @@ import { NAV_ITEMS } from "@/lib/constants"
 import { useLanguage } from "@/hooks/useLanguage"
 import { cn } from "@/lib/utils"
 
-// Mobile bottom tab bar — the Sidebar is hidden below md and this takes over.
+// Mobile bottom tab bar - the Sidebar is hidden below md and this takes over.
 // Fixed to the bottom with safe-area padding for notched devices.
 export function MobileNav() {
   const pathname = usePathname()

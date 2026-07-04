@@ -12,7 +12,7 @@ const SubscribeSchema = z.object({
   amount: z.number().positive().max(10_000_000),
 })
 
-// POST /api/yield/subscribe — move idle USDC into USYC (earn T-bill yield).
+// POST /api/yield/subscribe - move idle USDC into USYC (earn T-bill yield).
 export async function POST(req: NextRequest) {
   try {
     const limited = await enforceRateLimit(req, apiLimiter)

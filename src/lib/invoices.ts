@@ -76,7 +76,7 @@ export async function computeSmeHistory(
 }
 
 // Run AI scoring for an invoice and persist the result, moving it to SCORED.
-// Never throws on AI failure — scoreInvoiceRisk returns a neutral fallback.
+// Never throws on AI failure - scoreInvoiceRisk returns a neutral fallback.
 export async function scoreAndPersist(
   invoiceId: string
 ): Promise<InvoiceWithRelations> {
@@ -107,7 +107,7 @@ export async function scoreAndPersist(
       riskLabel: assessment.riskLabel,
       riskSummary: assessment.summary,
       advanceRate: assessment.advanceRate,
-      // Status is NOT advanced here — an invoice only becomes SCORED (listable)
+      // Status is NOT advanced here - an invoice only becomes SCORED (listable)
       // once the buyer countersigns via the verification link.
     },
     include: { sme: true, investor: true },

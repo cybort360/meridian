@@ -27,7 +27,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Meridian — Instant USDC Trade Finance for UAE SMEs",
+  title: "Meridian - Instant USDC Trade Finance for UAE SMEs",
   description:
     "The AI-native trade finance network giving UAE SMEs instant USDC-backed capital.",
 };
@@ -40,7 +40,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
-        {/* Arabic typeface — applied via html[lang="ar"] in globals.css when RTL is active. */}
+        {/* Arabic typeface - applied via html[lang="ar"] in globals.css when RTL is active. */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"

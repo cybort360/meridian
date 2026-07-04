@@ -13,7 +13,7 @@ function isSet(v: string | undefined): v is string {
 }
 
 // Sends an email via Resend (if configured), else SMTP/nodemailer (if
-// configured), else logs to the console. Never throws — email failures must
+// configured), else logs to the console. Never throws - email failures must
 // not break invoice creation.
 export async function sendEmail({ to, subject, text }: SendEmailInput): Promise<void> {
   // A custom From only counts if it's a real address (not the Resend demo one).
@@ -61,7 +61,7 @@ export async function sendEmail({ to, subject, text }: SendEmailInput): Promise<
       return
     }
 
-    // No provider configured — log so the flow is testable in dev.
+    // No provider configured - log so the flow is testable in dev.
     console.log(
       `\n[email:fallback] (no RESEND_API_KEY / SMTP creds)\n  To: ${to}\n  Subject: ${subject}\n\n${text}\n`
     )

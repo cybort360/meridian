@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma"
 import { scoreInvoiceSchema } from "@/lib/utils/invoiceValidation"
 import { scoreAndPersist, serializeInvoice } from "@/lib/invoices"
 
-// POST /api/ai/score — (re)score an invoice the caller owns.
+// POST /api/ai/score - (re)score an invoice the caller owns.
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions)

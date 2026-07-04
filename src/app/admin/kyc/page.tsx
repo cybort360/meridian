@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { ApproveButton } from "./ApproveButton"
 
-// Basic admin review screen — lists submissions awaiting review.
+// Basic admin review screen - lists submissions awaiting review.
 export default async function AdminKycPage() {
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) redirect("/login")
@@ -18,7 +18,7 @@ export default async function AdminKycPage() {
 
   return (
     <div style={{ padding: 24, color: "#e2e8f0", background: "#0f172a", minHeight: "100vh" }}>
-      <h1 style={{ fontSize: 20, marginBottom: 16 }}>KYC — Pending Review ({pending.length})</h1>
+      <h1 style={{ fontSize: 20, marginBottom: 16 }}>KYC - Pending Review ({pending.length})</h1>
       {pending.length === 0 && <p>No submissions awaiting review.</p>}
       {pending.map((u) => {
         const s = u.kycSubmission

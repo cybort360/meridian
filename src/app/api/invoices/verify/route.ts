@@ -3,7 +3,7 @@ import { captureError } from "@/lib/observability"
 import { prisma } from "@/lib/prisma"
 import { fromUSDCBaseUnits, formatUSDC } from "@/lib/utils/usdc"
 
-// GET /api/invoices/verify?token=... — buyer countersigns the invoice.
+// GET /api/invoices/verify?token=... - buyer countersigns the invoice.
 // Public (no auth): the magic-link token is the credential.
 export async function GET(req: NextRequest) {
   try {

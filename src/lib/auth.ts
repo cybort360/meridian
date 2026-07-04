@@ -15,7 +15,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        // Rate limit FIRST — this runs on every attempt, including wrong
+        // Rate limit FIRST - this runs on every attempt, including wrong
         // passwords, so it actually bounds brute force. (The signIn callback
         // only fires after a correct password, far too late to help.) Keyed on
         // the lowercased submitted email, so it can't be bypassed by rotating a

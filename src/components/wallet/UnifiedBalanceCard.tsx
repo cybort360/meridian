@@ -31,7 +31,7 @@ export function UnifiedBalanceCard() {
     if (err) setFormError(err)
     else {
       setAmount("")
-      setNotice("Deposit confirmed — your unified balance will update shortly.")
+      setNotice("Deposit confirmed - your unified balance will update shortly.")
     }
   }
 
@@ -48,7 +48,7 @@ export function UnifiedBalanceCard() {
     if (err) setFormError(err)
     else {
       setWithdrawAmount("")
-      setNotice("On its way — USDC is being minted back to your Arc wallet.")
+      setNotice("On its way - USDC is being minted back to your Arc wallet.")
     }
   }
 
@@ -119,7 +119,7 @@ export function UnifiedBalanceCard() {
           </p>
         </form>
 
-        {/* Withdraw — burn the unified balance and mint USDC back to Arc. */}
+        {/* Withdraw - burn the unified balance and mint USDC back to Arc. */}
         <form onSubmit={onWithdraw} className="space-y-2 border-t border-slate-800 pt-4">
           <div className="flex gap-2">
             <Input
@@ -143,7 +143,7 @@ export function UnifiedBalanceCard() {
           </div>
           <p className="text-xs text-slate-500">
             Burns from your unified balance and mints USDC straight back to your
-            Arc wallet — 1:1, no swap.
+            Arc wallet - 1:1, no swap.
           </p>
         </form>
       </CardContent>

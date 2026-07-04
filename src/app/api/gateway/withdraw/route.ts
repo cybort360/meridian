@@ -13,7 +13,7 @@ const WithdrawSchema = z.object({
   amount: z.number().positive().max(10_000_000),
 })
 
-// POST /api/gateway/withdraw — bring USDC from the unified Gateway balance back
+// POST /api/gateway/withdraw - bring USDC from the unified Gateway balance back
 // to the user's spendable Arc wallet (burn intent -> attestation -> mint).
 export async function POST(req: NextRequest) {
   try {

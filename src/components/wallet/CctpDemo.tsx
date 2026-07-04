@@ -86,7 +86,7 @@ export function CctpDemo() {
         <form onSubmit={send} className="space-y-4">
           {error && <ErrorMessage message={error} />}
           <p className="text-sm text-slate-400">
-            Send USDC from Arc to another testnet via Circle CCTP — burned on
+            Send USDC from Arc to another testnet via Circle CCTP - burned on
             Arc, minted on the destination chain.
           </p>
 
@@ -154,7 +154,7 @@ export function CctpDemo() {
             </div>
             {result.mock && (
               <p className="text-xs text-amber-400/80">
-                Simulated transfer — live CCTP isn&apos;t enabled for this
+                Simulated transfer - live CCTP isn&apos;t enabled for this
                 Circle sandbox route.
               </p>
             )}

@@ -24,7 +24,7 @@ function WelcomeDate({ company }: { company: string | null }) {
 
   return (
     <p className="mt-1 text-sm text-slate-400">
-      {now ? format(now, "EEEE, MMMM do, yyyy") : "—"}
+      {now ? format(now, "EEEE, MMMM do, yyyy") : "-"}
       {company ? ` · ${company}` : ""}
     </p>
   )
@@ -87,7 +87,7 @@ export default function DashboardPage() {
               <InvoicePipeline invoices={data.pipeline} />
             </div>
 
-            {/* Right column (≈35%) — fades in after the cards */}
+            {/* Right column (≈35%) - fades in after the cards */}
             <motion.div
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}

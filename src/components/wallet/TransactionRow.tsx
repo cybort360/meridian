@@ -15,7 +15,7 @@ const STATE_STYLE: Record<CircleTransactionState, string> = {
 }
 
 function truncate(value?: string): string {
-  if (!value) return "—"
+  if (!value) return "-"
   return value.length > 12 ? `${value.slice(0, 6)}…${value.slice(-4)}` : value
 }
 

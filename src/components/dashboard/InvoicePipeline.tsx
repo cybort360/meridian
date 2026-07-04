@@ -14,7 +14,7 @@ const DAY_MS = 86_400_000
 const CLOSED = ["SETTLED", "CANCELLED", "DEFAULTED"]
 
 function daysRemaining(dueDate: string, status: string): React.ReactNode {
-  if (CLOSED.includes(status)) return <span className="text-slate-600">—</span>
+  if (CLOSED.includes(status)) return <span className="text-slate-600">-</span>
   const days = Math.ceil((new Date(dueDate).getTime() - Date.now()) / DAY_MS)
   if (days < 0) return <span className="text-red-400">Overdue</span>
   if (days === 0) return <span className="text-amber-400">Today</span>

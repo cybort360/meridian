@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/nextjs"
 
-// Next.js throws control-flow "errors" to steer rendering — most notably the
+// Next.js throws control-flow "errors" to steer rendering - most notably the
 // DynamicServerError (digest "DYNAMIC_SERVER_USAGE") raised during the build's
 // static-generation probe when a route reads headers()/request.url. These are
 // expected signals, not faults, so they shouldn't be logged or sent to Sentry.
@@ -10,7 +10,7 @@ function isFrameworkControlFlow(error: unknown): boolean {
 }
 
 // Report a server-side error to Sentry (when SENTRY_DSN is configured) and
-// always log it locally. `context` is attached as extra data — keep it to
+// always log it locally. `context` is attached as extra data - keep it to
 // non-sensitive identifiers (route, ids), never secrets or raw PII.
 export function captureError(
   error: unknown,

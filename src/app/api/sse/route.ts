@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic"
 
 const HEARTBEAT_MS = 30_000
 
-// GET /api/sse — opens a Server-Sent Events stream for the authenticated user.
+// GET /api/sse - opens a Server-Sent Events stream for the authenticated user.
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) {

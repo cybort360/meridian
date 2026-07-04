@@ -4,7 +4,7 @@
 //
 // Implemented without jsdom/DOMPurify on purpose: those pull in a transitive
 // ESM-only dependency (@exodus/bytes via html-encoding-sniffer) that crashes
-// the Vercel Node runtime with ERR_REQUIRE_ESM. These fields are plain text —
+// the Vercel Node runtime with ERR_REQUIRE_ESM. These fields are plain text -
 // removing every tag and stray angle bracket is sufficient and keeps the
 // serverless bundle lean. Values are additionally escaped by React at render.
 export function sanitizeText(input: string): string {

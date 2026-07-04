@@ -112,7 +112,7 @@ export default function RegisterPage() {
         return
       }
 
-      // Success — show the banner, sign in behind it, then redirect.
+      // Success - show the banner, sign in behind it, then redirect.
       setLoading(false)
       setSuccess(true)
       const signInRes = await signIn("credentials", {
@@ -263,9 +263,9 @@ export default function RegisterPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="SME">SME — finance my invoices</SelectItem>
+                <SelectItem value="SME">SME - finance my invoices</SelectItem>
                 <SelectItem value="INVESTOR">
-                  Investor — fund invoices
+                  Investor - fund invoices
                 </SelectItem>
               </SelectContent>
             </Select>
