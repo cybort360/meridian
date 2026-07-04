@@ -6,7 +6,7 @@ import { extractPdfText } from "@/lib/utils/pdf"
 import { parseInvoiceText } from "@/lib/ai/invoiceParsing"
 import { AIConfigError } from "@/lib/ai/client"
 
-// pdf-parse needs Node APIs — opt out of the Edge runtime.
+// PDF text extraction needs Node APIs — opt out of the Edge runtime.
 export const runtime = "nodejs"
 
 const MAX_BYTES = 10 * 1024 * 1024 // 10MB
