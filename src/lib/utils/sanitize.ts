@@ -1,15 +1,19 @@
-import { JSDOM } from "jsdom"
-import createDOMPurify from "dompurify"
-
-// DOMPurify needs a DOM; on the server we give it a jsdom window. Reused across
-// calls so we don't spin up a window per request.
-const { window } = new JSDOM("")
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const purify = createDOMPurify(window as any)
-
 // Strip all HTML/markup from user-supplied text before persisting it. Defends
 // against stored XSS in fields that are later rendered (invoice titles, buyer
 // names, descriptions). Returns a trimmed, tag-free string.
+//
+// Implemented without jsdom/DOMPurify on purpose: those pull in a transitive
+// ESM-only dependency (@exodus/bytes via html-encoding-sniffer) that crashes
+// the Vercel Node runtime with ERR_REQUIRE_ESM. These fields are plain text —
+// removing every tag and stray angle bracket is sufficient and keeps the
+// serverless bundle lean. Values are additionally escaped by React at render.
 export function sanitizeText(input: string): string {
-  return purify.sanitize(input, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] }).trim()
+  return input
+    // Drop script/style blocks entirely, including their contents.
+    .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, "")
+    // Strip any remaining tags.
+    .replace(/<[^>]*>/g, "")
+    // Neutralize stray angle brackets so nothing can re-form a tag downstream.
+    .replace(/[<>]/g, "")
+    .trim()
 }
