@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { captureError } from "@/lib/observability"
 import { runDemo, isDemoMode } from "@/lib/demo"
 
@@ -12,7 +12,7 @@ export const maxDuration = 60
 // Streaming from this single invocation (rather than pushing to a separate SSE
 // channel) guarantees delivery on serverless, where the producer and a separate
 // SSE connection would run in different processes with no shared memory.
-export async function POST(_req: NextRequest) {
+export async function POST() {
   if (!isDemoMode()) {
     return NextResponse.json({ error: "Demo mode is not enabled." }, { status: 404 })
   }
