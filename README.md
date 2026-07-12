@@ -10,7 +10,7 @@
 ## Live Demo
 
 **App:** https://meridian-sandy-sigma.vercel.app  
-**Demo video:** `https://loom.com/...` ← replace with your Loom link  
+**Demo video:** https://youtu.be/HPogrLmpPcM  
 **Demo autopilot:** Visit [`/demo`](https://meridian-sandy-sigma.vercel.app/demo) on the live app — one click runs the full lifecycle
 
 ---
